@@ -7,7 +7,7 @@ import re
 import subprocess
 import os
 
-from utils.base_util import BaseUtil
+from utils.fs_util import FsUtil
 
 
 class PackageUtil:
@@ -16,7 +16,7 @@ class PackageUtil:
 
     @staticmethod
     def get_project_root_path() -> str:
-        return BaseUtil.get_project_root_path()
+        return FsUtil.get_project_root_path()
 
     @staticmethod
     def run_command(command: str) -> None:

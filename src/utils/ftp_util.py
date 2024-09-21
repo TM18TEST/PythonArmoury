@@ -6,7 +6,6 @@ Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 """
 import os.path
 from ftplib import FTP, error_perm
-from typing import List
 
 from utils.base_util import BaseUtil
 
@@ -32,7 +31,7 @@ class FtpUtil:
     DEFAULT_CONNECT_TIMEOUT_SEC = 3
 
     @staticmethod
-    def list_dirs_from_ftp(ftp, path) -> List[str]:
+    def list_dirs_from_ftp(ftp, path) -> list[str]:
         # 改变工作目录到指定路径
         ftp.cwd(path)
 

@@ -7,19 +7,33 @@ Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 
 import os
 import unittest
+from unittest.mock import patch
 
 from utils.fs_util import FsUtil
-from utils.base_util import BaseUtil
 
 
 class TestFsUtil(unittest.TestCase):
     def setUp(self):
-        self.test_root_dir = os.path.join(BaseUtil.get_project_root_path(), "tests")
+        self.test_root_dir = os.path.join(FsUtil.get_current_project_root_path(), "tests")
         self.test_data_root_dir = os.path.join(self.test_root_dir, "test_data")
         self.test_class_data_root_dir = os.path.join(self.test_data_root_dir, "test_utils", "test_fs_utils")
 
     def tearDown(self):
-        FsUtil.remove_path(self.test_class_data_root_dir)
+        try:
+            FsUtil.remove_path(self.test_class_data_root_dir)
+        except FileNotFoundError:
+            pass
+
+    @patch.object(FsUtil, 'get_project_root_path', return_value='mocker')
+    def test_get_project_root_path(self, mocker):
+        self.assertEqual(FsUtil.get_project_root_path(), 'mocker')
+
+        # Verify whether the stubbed method is called once
+        mocker.assert_called_once()
+
+    def test_get_current_project_root_path(self):
+        current_project_root_path: str = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        self.assertEqual(current_project_root_path, FsUtil.get_current_project_root_path())
 
     def test_is_empty_directory(self):
         test_data_dir = os.path.join(self.test_class_data_root_dir, "test_is_empty_directory")
@@ -115,6 +129,10 @@ class TestFsUtil(unittest.TestCase):
 
         self.assertTrue(FsUtil.is_empty_directory(dir1))
         self.assertTrue(os.path.isdir(os.path.join(dir2, "content_dir")))
+
+    def test_get_file_extension(self):
+        self.assertEqual(FsUtil.get_file_extension("D:\\path\\file.extension"), ".extension")
+        self.assertEqual(FsUtil.get_file_extension("D:\\path\\file.ext1.ext2"), ".ext2")
 
 
 if __name__ == '__main__':

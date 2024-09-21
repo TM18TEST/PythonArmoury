@@ -6,9 +6,8 @@ Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 import re
 import subprocess
 import os
-from typing import List, Tuple
 
-from utils.base_util import BaseUtil
+from utils.fs_util import FsUtil
 from utils.ver_file_util import VerFileData
 
 
@@ -62,11 +61,11 @@ class PackageUtil:
     @staticmethod
     def overwrite_version_info_in_py_config(ver_config: VerConfig) -> None:
         # Open the file and read its content
-        file_path = os.path.join(BaseUtil.get_project_root_path(), "src", "config", "project_config.py")
+        file_path = os.path.join(FsUtil.get_project_root_path(), "src", "config", "project_config.py")
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
 
-        key_value_list: List[Tuple[str, str]] = [
+        key_value_list: list[(str, str)] = [
             ('ORGANIZE_NAME', ver_config.organize_name),
             ('SHORT_APP_NAME', ver_config.short_app_name),
             ('APP_AUTHOR', ver_config.app_auther),
@@ -86,7 +85,7 @@ class PackageUtil:
     @staticmethod
     def overwrite_version_info_in_rc(ver_config: VerConfig) -> None:
         # Update the version to file
-        file_path = os.path.join(BaseUtil.get_project_root_path(), "scripts", "version.rc")
+        file_path = os.path.join(FsUtil.get_project_root_path(), "scripts", "version.rc")
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(ver_config.ver_file_info.__str__())
 
@@ -99,27 +98,34 @@ class PackageUtil:
         print("Overwrite the version information success.")
 
     @staticmethod
-    def run_pyinstaller(app_file_short_name: str) -> None:
+    def run_pyinstaller(app_file_short_name: str, add_paths: list[(str, str)]) -> None:
+        add_data_str: str = ""
+        for add_src, add_dst in add_paths:
+            add_data_str = add_data_str + "--add-data=\"{};{}\" ".format(add_src, add_dst)
+
         print("Starting packaging the program, please wait...")
         cmd = ("pyinstaller " +
                "--version-file=scripts/version.rc " +
-               "--add-data=\"resource/images/icon.ico;resource/images\" " +
+               add_data_str +
                "-i=\"resource/images/icon.ico\" " +
                "-Fw src/main.py " +
                "-n \"{}\"".format(app_file_short_name))
         PackageUtil.run_command(cmd)
 
     @staticmethod
-    def pack_app(prj_root_path: str, ver_config: VerConfig) -> None:
+    def pack_app(prj_root_path: str, ver_config: VerConfig, add_paths: list[(str, str)]) -> None:
         os.chdir(prj_root_path)
 
         # Update the version information
         PackageUtil.overwrite_version_info(ver_config)
 
-        PackageUtil.run_pyinstaller(ver_config.app_file_short_name)
+        PackageUtil.run_pyinstaller(ver_config.app_file_short_name, add_paths)
 
         # Restore the version information
-        PackageUtil.overwrite_version_info(None)
+        product_version = ver_config.ver_file_info.product_version
+        product_version = product_version[:product_version.find('_', product_version.find('_') + 1)]
+        ver_config.ver_file_info.product_version = product_version
+        PackageUtil.overwrite_version_info(ver_config)
 
 
 if __name__ == "__main__":

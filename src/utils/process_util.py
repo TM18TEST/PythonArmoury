@@ -7,12 +7,16 @@ Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 import ctypes
 import os
 import _winapi
-from typing import List
 
 import psutil
 
 
 class ProcessUtil:
+    # Windows priority constant definition
+    WIN_NORMAL_PRIORITY_CLASS = 0x00000020
+    WIN_IDLE_PRIORITY_CLASS = 0x00000040
+    WIN_HIGH_PRIORITY_CLASS = 0x00000080
+
     @staticmethod
     def get_current_process_priority() -> int:
         p = psutil.Process(os.getpid())
@@ -34,8 +38,8 @@ class ProcessUtil:
             raise RuntimeError(f"Invalid process name: {actual_name}, expected: {expected_name}.")
 
     @staticmethod
-    def get_process_list_by_name(expected_name: str) -> List[psutil.Process]:
-        proc_list: List[psutil.Process] = []
+    def get_process_list_by_name(expected_name: str) -> list[psutil.Process]:
+        proc_list: list[psutil.Process] = []
         for proc in psutil.process_iter(['pid', 'name']):
             if proc.name() == expected_name:
                 proc_list.append(proc)

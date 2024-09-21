@@ -4,22 +4,76 @@
 Description: File System Utility Class Source Code.
 Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 """
+import glob
 import hashlib
 import os
 import shutil
+import sys
 from pathlib import Path
-from typing import List
 import tempfile
+from typing import AnyStr
 
 
 class FsUtil:
     @staticmethod
-    def get_subdirectories_obj(path: str) -> List[Path]:
+    def get_project_root_path() -> AnyStr:
+        current_dir: AnyStr = os.path.abspath(os.path.dirname(__file__))
+        directory = current_dir
+        while True:
+            if os.path.isdir(os.path.join(directory, '.git')):
+                return directory
+            if directory == os.path.dirname(directory):
+                raise ValueError(f'Path does not exist, current dir: {current_dir}')
+            directory = os.path.dirname(directory)
+
+    @staticmethod
+    def get_current_project_root_path() -> AnyStr:
+        current_dir: AnyStr = os.path.abspath(os.path.dirname(__file__))
+        directory = current_dir
+        while True:
+            if os.path.exists(os.path.join(directory, '.git')):
+                return directory
+            if directory == os.path.dirname(directory):
+                raise ValueError(f'Path does not exist, current dir: {current_dir}')
+            directory = os.path.dirname(directory)
+
+    @staticmethod
+    def get_process_root_path() -> AnyStr:
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller will create a temporary folder temp and store the path in _MEIPASS
+            base_path = sys._MEIPASS
+        else:
+            base_path = FsUtil.get_project_root_path()
+        return base_path
+
+    @staticmethod
+    def is_run_from_packaged_exe_file() -> bool:
+        return getattr(sys, 'frozen', False)
+
+    @staticmethod
+    def get_packaged_exe_file_path() -> str:
+        if FsUtil.is_run_from_packaged_exe_file():
+            return sys.executable
+        return ''
+
+    @staticmethod
+    def get_packaged_exe_file_dir() -> AnyStr:
+        return os.path.dirname(FsUtil.get_packaged_exe_file_path())
+
+    @staticmethod
+    def get_current_dir() -> AnyStr:
+        if FsUtil.is_run_from_packaged_exe_file():
+            return FsUtil.get_packaged_exe_file_dir()
+        else:
+            return FsUtil.get_process_root_path()
+
+    @staticmethod
+    def get_subdirectories_obj(path: str) -> list[Path]:
         p = Path(path)
         return [subdir for subdir in p.iterdir() if subdir.is_dir()]
 
     @staticmethod
-    def get_subdirectory_names(path: str) -> List[str]:
+    def get_subdirectory_names(path: str) -> list[str]:
         p = Path(path)
         return [subdir.name for subdir in p.iterdir() if subdir.is_dir()]
 
@@ -97,7 +151,7 @@ class FsUtil:
         return sha1.hexdigest()
 
     @staticmethod
-    def search_files_in_dir(directory: str, target_filename: str) -> List[str]:
+    def search_files_in_dir(directory: str, target_filename: str) -> list[str]:
         matches = []
         # os.walk 递归地遍历目录树
         for root, dirs, files in os.walk(directory):
@@ -106,3 +160,20 @@ class FsUtil:
                 # 构建文件的绝对路径并添加到结果列表
                 matches.append(os.path.join(root, target_filename))
         return matches
+
+    @staticmethod
+    def list_file_paths_with_extensions(dir_path: str, extensions: list[str]) -> list[str]:
+        files = []
+        for ext in extensions:
+            files.extend(glob.glob(os.path.join(dir_path, f'*.{ext}')))
+        return files
+
+    @staticmethod
+    def list_file_names_with_extensions(dir_path: str, extensions: list[str]) -> list[str]:
+        files = FsUtil.list_file_paths_with_extensions(dir_path, extensions)
+        return [os.path.basename(file) for file in files]
+
+    @staticmethod
+    def get_file_extension(file: str):
+        _, file_extension = os.path.splitext(file)
+        return file_extension
