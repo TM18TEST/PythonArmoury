@@ -177,3 +177,21 @@ class FsUtil:
     def get_file_extension(file: str):
         _, file_extension = os.path.splitext(file)
         return file_extension
+
+    @staticmethod
+    def resource_find_oldest_file_in_dir(dir_path: str, file_name: str) -> str:
+        oldest_file_path: str = ''
+        oldest_file_time: float = float('inf')
+
+        # Recursively traverse directories
+        for sub_dir_path, _, filenames in os.walk(dir_path):
+            if file_name in filenames:
+                file_path = os.path.join(sub_dir_path, file_name)
+                file_time = os.path.getmtime(file_path)
+
+                # Update the file with the earliest modification time
+                if file_time < oldest_file_time:
+                    oldest_file_time = file_time
+                    oldest_file_path = file_path
+
+        return oldest_file_path
