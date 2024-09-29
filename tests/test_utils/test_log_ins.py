@@ -6,7 +6,6 @@ Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 """
 
 import unittest
-import psutil
 
 from utils.log_ins import LogUtil
 

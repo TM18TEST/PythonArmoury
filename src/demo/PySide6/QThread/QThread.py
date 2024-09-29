@@ -6,18 +6,42 @@ import time
 
 
 class WorkThread(QThread):
+    """
+    A worker thread that counts continuously and emits the count value.
+
+    This class extends QThread and is designed to run in the background,
+    incrementing a counter and emitting the current count value at regular intervals.
+
+    Signals:
+        countSignal (int): Emitted every second with the current count value.
+    """
     count = int(0)
     countSignal = Signal(int)
 
     def __init__(self):
         super(WorkThread, self).__init__()
+        self.flag = True
 
     def run(self):
-        self.flag = True
+        """
+        The main method that runs in the thread.
+
+        This method increments the count every second and emits the countSignal
+        with the current count value as long as the flag is set to True.
+        """
         while self.flag:
             self.count += 1
             self.countSignal.emit(self.count)
             time.sleep(1)
+
+    def stop(self):
+        """
+        Stops the counting thread gracefully.
+
+        Sets the flag to False, allowing the run method to exit its loop
+        and the thread to finish execution.
+        """
+        self.flag = False
 
 
 class MainWindow(QMainWindow):

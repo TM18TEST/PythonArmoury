@@ -101,7 +101,7 @@ class PackageUtil:
     def run_pyinstaller(app_file_short_name: str, add_paths: list[(str, str)]) -> None:
         add_data_str: str = ""
         for add_src, add_dst in add_paths:
-            add_data_str = add_data_str + "--add-data=\"{};{}\" ".format(add_src, add_dst)
+            add_data_str += "--add-data=\"{};{}\" ".format(add_src, add_dst)
 
         print("Starting packaging the program, please wait...")
         cmd = ("pyinstaller " +
