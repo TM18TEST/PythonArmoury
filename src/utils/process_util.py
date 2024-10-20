@@ -89,3 +89,11 @@ class ProcessUtil:
         kernel32, mutex = ctx
         kernel32.ReleaseMutex(mutex)
         kernel32.CloseHandle(mutex)
+
+    @staticmethod
+    def is_process_running(process_name: str) -> bool:
+        return any(process.name() == process_name for process in psutil.process_iter(['name']))
+
+    @staticmethod
+    def is_excel_process_running() -> bool:
+        return ProcessUtil.is_process_running('EXCEL.EXE')
