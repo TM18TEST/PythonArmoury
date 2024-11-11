@@ -36,3 +36,11 @@ class BaseUtil:
 
         # By default, objects are considered non-empty
         return False
+
+    @staticmethod
+    def is_any_empty(*args) -> bool:
+        return any(BaseUtil.is_empty(arg) for arg in args)
+
+    @staticmethod
+    def is_all_empty(*args) -> bool:
+        return all(BaseUtil.is_empty(arg) for arg in args)
