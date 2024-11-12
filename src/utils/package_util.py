@@ -113,11 +113,19 @@ class PackageUtil:
         PackageUtil.run_command(cmd)
 
     @staticmethod
-    def pack_app(prj_root_path: str, ver_config: VerConfig, add_paths: list[(str, str)], one_file: bool) -> None:
+    def pack_app(prj_root_path: str, ver_config: VerConfig, add_paths: list[(str, str)],
+                 one_file: bool, ui_files: (str, str) = None) -> None:
         os.chdir(prj_root_path)
 
         # Update the version information
         PackageUtil.overwrite_version_info(ver_config)
+
+        if ui_files:
+            # Generate the Python code from ui file
+            PackageUtil.overwrite_version_info(ver_config)
+            cmd = "pyside6-uic resource/ui/mainwindow.ui -o src/front_end/ui/generated/ui_mainwindow.py".format(ui_files[0], ui_files[1])
+            cmd = "pyside6-uic {} -o {}".format(ui_files[0], ui_files[1])
+            PackageUtil.run_command(cmd)
 
         PackageUtil.run_pyinstaller(ver_config.app_file_short_name, add_paths, one_file)
 
