@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Description: String Utility Class Source Code.
-Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 """
 
 

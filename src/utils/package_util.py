@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
-"""
+
 import re
 import subprocess
 import os
@@ -98,23 +96,24 @@ class PackageUtil:
         print("Overwrite the version information success.")
 
     @staticmethod
-    def run_pyinstaller(app_file_short_name: str, add_paths: list[(str, str)], one_file: bool) -> None:
-        add_data_str: str = ""
-        for add_src, add_dst in add_paths:
-            add_data_str += "--add-data=\"{};{}\" ".format(add_src, add_dst)
+    def run_pyinstaller(app_file_short_name: str, add_paths: list[(str, str)],
+                        one_file: bool, import_search_paths: list[str] = None) -> None:
+        add_data_str = " ".join([f'--add-data="{add_src};{add_dst}"' for add_src, add_dst in add_paths])
+        import_search_paths_str = f" --paths=\"{';'.join(import_search_paths)}\"" if import_search_paths else ""
 
         print("Starting packaging the program, please wait...")
-        cmd = ("pyinstaller " +
-               "--version-file=scripts/version.rc " +
+        cmd = ("pyinstaller" +
+               " --version-file=\"scripts/version.rc\" " +
                add_data_str +
-               "-i=\"resource/images/icon.ico\" " +
-               "-{}w src/main.py ".format("F" if one_file else "") +
-               "-n \"{}\"".format(app_file_short_name))
+               " -i=\"resource/images/icon.ico\"" +
+               import_search_paths_str +
+               " -{}w src/main.py".format("F" if one_file else "") +
+               " -n \"{}\"".format(app_file_short_name))
         PackageUtil.run_command(cmd)
 
     @staticmethod
     def pack_app(prj_root_path: str, ver_config: VerConfig, add_paths: list[(str, str)],
-                 one_file: bool, ui_files: (str, str) = None) -> None:
+                 one_file: bool, import_search_paths: list[str] = None, ui_files: (str, str) = None) -> None:
         os.chdir(prj_root_path)
 
         # Update the version information
@@ -127,7 +126,7 @@ class PackageUtil:
             cmd = "pyside6-uic {} -o {}".format(ui_files[0], ui_files[1])
             PackageUtil.run_command(cmd)
 
-        PackageUtil.run_pyinstaller(ver_config.app_file_short_name, add_paths, one_file)
+        PackageUtil.run_pyinstaller(ver_config.app_file_short_name, add_paths, one_file, import_search_paths)
 
         # Restore the version information
         product_version = ver_config.ver_file_info.product_version

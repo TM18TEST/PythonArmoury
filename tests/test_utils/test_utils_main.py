@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Description: Test Cases Main Used to Run All Test Cases.
-Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 """
 
 import os

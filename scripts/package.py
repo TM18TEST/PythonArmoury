@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
-"""
 import re
 import subprocess
 import os

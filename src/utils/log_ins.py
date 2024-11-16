@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 Description: Log Utility Class Source Code.
-Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 """
-
+import importlib.util
 import os
 import logging
 import tempfile
 import threading
 
-from config.project_config import ProjectConfig
+try:
+    from config.project_config import ProjectConfig
+except ModuleNotFoundError:
+    from config.armoury_project_config import ArmouryProjectConfig as ProjectConfig
 
 
 class LogUtil:
