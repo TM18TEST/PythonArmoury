@@ -5,7 +5,7 @@ import shutil
 import os
 from pathlib import Path
 
-from utils.fs_util import FsUtil
+from utils.fs.fs_util import FsUtil
 
 
 class CleanUtil:

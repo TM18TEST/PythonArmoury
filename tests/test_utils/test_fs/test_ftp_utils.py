@@ -6,8 +6,6 @@ Description: FTP Utility Class Test Cases.
 
 import unittest
 
-from utils.ftp_util import FtpUtil
-
 
 class TestFtpUtils(unittest.TestCase):
     def setUp(self):

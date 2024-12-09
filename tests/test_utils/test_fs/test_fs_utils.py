@@ -5,10 +5,11 @@ Description: File System Utility Class Test Cases.
 """
 
 import os
+import time
 import unittest
 from unittest.mock import patch
 
-from utils.fs_util import FsUtil
+from utils.fs.fs_util import FsUtil
 
 
 class TestFsUtil(unittest.TestCase):
@@ -31,7 +32,9 @@ class TestFsUtil(unittest.TestCase):
         mocker.assert_called_once()
 
     def test_get_current_project_root_path(self):
-        current_project_root_path: str = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        current_project_root_path: str = os.path.abspath(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        )
         self.assertEqual(current_project_root_path, FsUtil.get_current_project_root_path())
 
     def test_is_empty_directory(self):
@@ -132,6 +135,22 @@ class TestFsUtil(unittest.TestCase):
     def test_get_file_extension(self):
         self.assertEqual(FsUtil.get_file_extension("D:\\path\\file.extension"), ".extension")
         self.assertEqual(FsUtil.get_file_extension("D:\\path\\file.ext1.ext2"), ".ext2")
+
+    def test_set_file_times(self):
+        test_data_dir: str = os.path.join(self.test_class_data_root_dir, "test_set_file_times")
+        FsUtil.remake_dirs(test_data_dir)
+        file_path: str = os.path.join(test_data_dir, "file_times.txt")
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write('')
+        timestamp: float = time.time()
+        self.assertLessEqual(abs(os.path.getctime(file_path) - timestamp), 1.0)
+        self.assertLessEqual(abs(os.path.getmtime(file_path) - timestamp), 1.0)
+        self.assertLessEqual(abs(os.path.getatime(file_path) - timestamp), 1.0)
+
+        FsUtil.set_file_times(file_path, 0.0, 1.0, 2.0)
+        self.assertEqual(0.0, os.path.getctime(file_path))
+        self.assertEqual(1.0, os.path.getmtime(file_path))
+        self.assertEqual(2.0, os.path.getatime(file_path))
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ import re
 import subprocess
 import os
 
-from utils.fs_util import FsUtil
+from utils.fs.fs_util import FsUtil
 
 
 class PackageUtil:
