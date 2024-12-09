@@ -3,6 +3,7 @@
 """
 Description: File System Utility Class Source Code.
 """
+import ctypes
 import glob
 import hashlib
 import os
@@ -194,3 +195,21 @@ class FsUtil:
                     oldest_file_path = file_path
 
         return oldest_file_path
+
+    @staticmethod
+    def set_file_times(file_path, create_timestamp: float, last_modified_timestamp: float,
+                       last_access_timestamp: float):
+        os.utime(file_path, (last_access_timestamp, last_modified_timestamp))
+        if os.name == 'nt':  # Windows
+            file_time = create_timestamp
+            win_time = int(file_time * 10 ** 7 + 116444736000000000)
+            handle = ctypes.windll.kernel32.CreateFileW(
+                file_path, 256, 0, None, 3, 128, None
+            )
+            if handle == -1:
+                raise OSError("Unable to open file set creation time")
+            c_time = ctypes.c_longlong(win_time)
+            ctypes.windll.kernel32.SetFileTime(handle, ctypes.byref(c_time), None, None)
+            ctypes.windll.kernel32.CloseHandle(handle)
+        else:
+            raise RuntimeError(f'Unsupported OS type: {os.name}')
