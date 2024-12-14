@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
+Description: Git Utility Class Source Code.
 """
 
 import os
 import sys
+from datetime import datetime
+from typing import Optional
 
 from git import Repo
-from git.exc import InvalidGitRepositoryError
+from git.exc import InvalidGitRepositoryError, GitCommandError, NoSuchPathError
 
 from utils.base_util import BaseUtil
 from utils.fs.file_util import FileUtil
 from utils.log_ins import LogUtil
+from utils.time_util import TimeDuration
 
 logger = LogUtil.get_logger()
 
@@ -31,6 +34,33 @@ class GitUtil:
             return True
         except InvalidGitRepositoryError:
             return False
+        except NoSuchPathError:
+            return False
+
+    @staticmethod
+    def create_local_empty_git_repo(repo_path: str) -> bool:
+        if GitUtil.is_git_repository(repo_path):
+            return False
+        os.makedirs(repo_path, exist_ok=True)
+        Repo.init(repo_path)
+        return True
+
+    @staticmethod
+    def clone_git_repository(repo_url: str, local_repo_path: str, username: str, password: str):
+        try:
+            repo = Repo.clone_from(
+                repo_url,
+                local_repo_path,
+                env={
+                    'GIT_ASKPASS': 'echo',
+                    'GIT_USERNAME': username,
+                    'GIT_PASSWORD': password
+                }
+            )
+            repo.close()
+        except GitCommandError as exc:
+            logger.error("Error cloning repository: %s", str(exc))
+            raise exc
 
     @staticmethod
     def create_git_repository(repo_path: str) -> bool:
@@ -42,7 +72,7 @@ class GitUtil:
         return True
 
     @staticmethod
-    def load_git_untracked_diff(repo_path: str, cached: bool = False) -> str | None:
+    def load_git_untracked_diff(repo_path: str, cached: bool = False) -> Optional[str]:
         repo = Repo(repo_path)
         if not repo.is_dirty(untracked_files=True):
             return None
@@ -92,7 +122,7 @@ class GitUtil:
             print("没有未提交的更改，跳过导出")
 
     @staticmethod
-    def export_diff_including_untracked(repo_path: str) -> str | None:
+    def export_diff_including_untracked(repo_path: str) -> Optional[str]:
         """导出 Git 仓库中的未提交差异，包括未受版本控制文件。
 
         Args:
@@ -137,7 +167,7 @@ class GitUtil:
             print(f"发生错误: {e}")
 
     @staticmethod
-    def load_tracked_diff(repo_path: str, with_header: bool = False) -> str | None:
+    def load_tracked_diff(repo_path: str, with_header: bool = False) -> Optional[str]:
         """导出 Git 仓库中的未提交差异，包括未受版本控制文件。
 
         Args:
@@ -163,7 +193,7 @@ class GitUtil:
         return tracked_diff
 
     @staticmethod
-    def load_untracked_diff(repo_path: str, with_header: bool = False) -> str | None:
+    def load_untracked_diff(repo_path: str, with_header: bool = False) -> Optional[str]:
         """导出 Git 仓库中的未提交差异，包括未受版本控制文件。
 
         Args:
@@ -201,6 +231,28 @@ class GitUtil:
         if with_header:
             untracked_diff = "# Untracked File(s) Content\r\n" + untracked_diff
         return untracked_diff
+
+    @staticmethod
+    def export_changes_between_time_points(local_repo_path: str, time_duration: TimeDuration) -> Optional[str]:
+        start_time: str = datetime.fromtimestamp(time_duration.start_timestamp_second).strftime('%Y-%m-%d %H:%M:%S')
+        end_time: str = datetime.fromtimestamp(time_duration.end_timestamp_second).strftime('%Y-%m-%d %H:%M:%S')
+
+        with Repo(local_repo_path) as r:
+            commits = list(r.iter_commits(since=start_time, until=end_time))
+            if not commits:
+                return None
+
+            # Get the first and last commit in the range
+            start_commit = commits[-1]
+            end_commit = commits[0]
+
+            # Ensure start_commit has a parent (not the first commit)
+            start_commit = start_commit.parents[0] if start_commit.parents else start_commit
+
+            # Return the diff between commits
+            # the diff will contain end_commit but not start_commit
+            diff = r.git.diff(start_commit, end_commit)
+            return diff
 
 
 if __name__ == "__main__":

@@ -5,13 +5,16 @@ Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
 """
 
 import os
+import shutil
 import socket
 import sys
+from typing import Optional
 from smb.SMBConnection import SMBConnection
 
 from utils.base_util import BaseUtil
 from utils.fs.fs_util import FsUtil
 from utils.log_ins import LogUtil
+from utils.vcs.git_repo import GitRepo
 
 logger = LogUtil.get_logger()
 
@@ -39,14 +42,17 @@ class SmbConn:
         self.user: str = user
         self.password: str = password
         self.service_name: str = service_name
-        self.conn: SMBConnection | None = None
+        self.conn: Optional[SMBConnection] = None
 
         # Device name
         self.remote_name: str = remote_name
         if BaseUtil.is_empty(self.remote_name):
-            host_name, _, _ = socket.gethostbyaddr(self.ip)
+            try:
+                host_name, _, _ = socket.gethostbyaddr(self.ip)
+            except Exception:
+                host_name = ''
             self.remote_name = host_name.split('.')[0]
-            logger.info("Remote name is empty, use obtained host name: %s.", self.remote_name)
+            logger.info("Remote host name is empty, use obtained host name: %s.", self.remote_name)
         logger.debug("Construct SMB connection success, ip: %s, user: %s.", ip, user)
 
     def __enter__(self):
@@ -128,7 +134,88 @@ class SmbConn:
             raise
 
 
+def _simple_smb_server_test():
+    server_list: list[tuple[str, str]] = [
+        ("A1REP0120", "10.106.73.74"),
+        ("A1REP0130", "10.106.73.73"),
+        ("A1REP0220", "10.106.73.181"),
+        ("A1REP0320", "10.106.73.72"),
+        ("A1REP0330", "10.106.73.71"),
+        ("A1REP0420", "10.106.73.115"),
+        ("A1REP0430", "10.106.73.114"),
+        ("A1REP0520", "10.106.73.113"),
+        ("A1REP0530", "10.106.73.112"),
+        ("A1REP0620", "10.106.73.111"),
+        ("A1REP0720", "10.106.73.182"),
+        ("A1REP0730", "10.106.73.183"),
+        ("A1REP0820", "10.106.73.184"),
+        ("A1REP0830", "10.106.73.185"),
+        ("P1REP0120", "10.106.72.36"),
+        ("P1REP0130", "10.106.72.35"),
+        ("P1REP0400", "10.106.73.186"),
+    ]
+    success_list: list[str] = []
+    fail_list: list[str] = []
+    for name, ip in server_list:
+        try:
+            host_name, _, _ = socket.gethostbyaddr(ip)
+            remote_name = host_name.split('.')[0]
+            logger.info("Get host name success: %s -%s.", name, remote_name)
+        except Exception as exp:
+            logger.exception("Get host name failed: %s, exp: %s.", ip, str(exp))
+            remote_name = name
+
+        try:
+            conn = SMBConnection("VTEC", "VTEC", '', remote_name, use_ntlm_v2=True)
+            if not conn.connect(ip, timeout=1):
+                logger.error("Unable to connect to SMB server, ip: %s, server: %s.", ip, name)
+                fail_list.append(name + " " + ip)
+                continue
+            conn.close()
+        except Exception as exp:
+            logger.exception("Connect failed: %s, exp: %s.", ip, str(exp))
+            fail_list.append(name + " " + ip)
+            continue
+        logger.info("Connected to SMB server success, ip: %s, server: %s.", ip, name)
+        success_list.append(name + " " + ip)
+    logger.info("success list: %s, \r\nfail list: %s.", success_list, fail_list)
+
+
 if __name__ == "__main__":
+    paths: list[tuple[str, str]] = [
+        ('10.106.73.74', 'a1rep0120'),
+        ('10.106.73.73', 'a1rep0130'),
+        ('10.106.73.181', 'a1rep0220'),
+        ('10.106.73.72', 'a1rep0320'),
+        ('10.106.73.71', 'a1rep0330'),
+        ('10.106.73.115', 'a1rep0420'),
+        ('10.106.73.114', 'a1rep0430'),
+        ('10.106.73.113', 'a1rep0520'),
+        ('10.106.73.112', 'a1rep0530'),
+        ('10.106.73.111', 'a1rep0620'),
+        ('10.106.73.182', 'a1rep0720'),
+        ('10.106.73.183', 'a1rep0730'),
+        ('10.106.73.184', 'a1rep0820'),
+        ('10.106.73.185', 'a1rep0830'),
+        ('10.106.72.36', 'p1rep0120'),
+        ('10.106.72.35', 'p1rep0130'),
+    ]
+    for ip, identify in paths:
+        local_pah: str = os.path.join('E:\\Recipes\\VTecRep3', identify)
+        if os.path.exists(local_pah):
+            FsUtil.remove_path(local_pah)
+        os.makedirs(local_pah, exist_ok=True)
+        repo = GitRepo(
+            local_repo_path=local_pah,
+            remote_repo_url=f'http://192.168.1.2:3000/recipe/{identify}.git',
+            username='tool',
+            password='11111111'
+        )
+        repo.clone()
+        shutil.copytree(f'\\\\{ip}\\env\\Recipe\\', local_pah, dirs_exist_ok=True)
+        logger.info("%s %s", ip, identify)
+    sys.exit(0)
+
     try:
         # Create and use SmbConn objects using context managers
         with SmbConn(ip='192.168.3.200', user='admin', password='', service_name='Share2') as s:
