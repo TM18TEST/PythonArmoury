@@ -8,10 +8,11 @@ import glob
 import hashlib
 import os
 import shutil
-import sys
 from pathlib import Path
 import tempfile
 from typing import AnyStr
+
+from utils.pyinstaller_util import PyInstallerUtil
 
 
 class FsUtil:
@@ -39,33 +40,17 @@ class FsUtil:
 
     @staticmethod
     def get_process_root_path() -> AnyStr:
-        if hasattr(sys, '_MEIPASS'):
-            # PyInstaller will create a temporary folder temp and store the path in _MEIPASS
-            base_path = sys._MEIPASS
+        if PyInstallerUtil.is_run_in_pyinstaller_bundle():
+            return PyInstallerUtil.get_resource_root_dir()
         else:
-            base_path = FsUtil.get_project_root_path()
-        return base_path
-
-    @staticmethod
-    def is_run_from_packaged_exe_file() -> bool:
-        return getattr(sys, 'frozen', False)
-
-    @staticmethod
-    def get_packaged_exe_file_path() -> str:
-        if FsUtil.is_run_from_packaged_exe_file():
-            return sys.executable
-        return ''
-
-    @staticmethod
-    def get_packaged_exe_file_dir() -> AnyStr:
-        return os.path.dirname(FsUtil.get_packaged_exe_file_path())
+            return FsUtil.get_project_root_path()
 
     @staticmethod
     def get_current_dir() -> AnyStr:
-        if FsUtil.is_run_from_packaged_exe_file():
-            return FsUtil.get_packaged_exe_file_dir()
+        if PyInstallerUtil.is_run_in_pyinstaller_bundle():
+            return PyInstallerUtil.get_packaged_exe_file_dir()
         else:
-            return FsUtil.get_process_root_path()
+            return FsUtil.get_project_root_path()
 
     @staticmethod
     def get_subdirectories_obj(path: str) -> list[Path]:
@@ -84,6 +69,19 @@ class FsUtil:
     @staticmethod
     def is_empty_directory(path: str) -> bool:
         return os.path.isdir(path) and not os.listdir(path)
+
+    @staticmethod
+    def is_empty_dir(path: str) -> bool:
+        with os.scandir(path) as entries:
+            for _ in entries:
+                return False
+        return True
+
+    @staticmethod
+    def is_dir_exist_and_not_empty(path: str) -> bool:
+        if os.path.exists(path) and os.path.isdir(path):
+            return not FsUtil.is_empty_dir(path)
+        return False
 
     @staticmethod
     def remove_path(path: str) -> None:

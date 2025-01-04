@@ -6,6 +6,7 @@ Description: Process Utility Class Source Code.
 import ctypes
 import os
 import _winapi
+from typing import Optional
 
 import psutil
 
@@ -66,7 +67,7 @@ class ProcessUtil:
             raise RuntimeError(f"The mutex has already been created: {mutex_name}.")
 
     @staticmethod
-    def acquire_windows_global_mutex(identifier: str) -> object | None:
+    def acquire_windows_global_mutex(identifier: str) -> Optional[object]:
         # 互斥体名称
         mutex_name = "Global\\Mutex." + identifier
 
