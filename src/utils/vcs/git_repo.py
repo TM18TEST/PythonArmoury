@@ -62,12 +62,12 @@ class GitRepo:
             git.Repo.clone_from(remote_url, self.local_repo_path)
             logger.info("Cloned repository successfully from %s to %s.", self.remote_repo_url, self.local_repo_path)
         except git.GitCommandError as e:
-            logger.error("Git clone failed, remote: %s, local: %s, Error: %s",
-                         self.remote_repo_url, self.local_repo_path, str(e))
+            logger.exception("Git clone failed, remote: %s, local: %s. Exception: %s",
+                             self.remote_repo_url, self.local_repo_path, e)
             raise e
         except Exception as e:
-            logger.error("An unexpected error occurred while cloning, remote: %s, local: %s, Error: %s",
-                         self.remote_repo_url, self.local_repo_path, str(e))
+            logger.error("An unexpected error occurred while cloning, remote: %s, local: %s. Exception: %s",
+                         self.remote_repo_url, self.local_repo_path, e)
             raise e
 
     def pull(self):
@@ -78,13 +78,13 @@ class GitRepo:
                 logger.info("Pull from remote git repository success, local repo path: %s.", self.local_repo_path)
                 return result  # You can return the result of the pull command if you want to use it elsewhere
         except git.GitCommandError as e:
-            logger.error("Git pull failed, local repo path: %s, Error: %s", self.local_repo_path, str(e))
-            raise RuntimeError(f"Git pull failed, local repo path: {self.local_repo_path}, Error: {str(e)}")
+            logger.error("Git pull failed, local repo path: %s. Error: %s", self.local_repo_path, str(e))
+            raise RuntimeError(f"Git pull failed, local repo path: {self.local_repo_path}. Error: {str(e)}")
         except Exception as e:
-            logger.error("An unexpected error occurred during git pull, local repo path: %s, Error: %s",
+            logger.error("An unexpected error occurred during git pull, local repo path: %s. Error: %s",
                          self.local_repo_path, str(e))
             raise RuntimeError(f"Unexpected error during git pull, "
-                               f"local repo path: {self.local_repo_path}, Error: {str(e)}")
+                               f"local repo path: {self.local_repo_path}. Error: {str(e)}")
 
     def sync_from_remote(self, branch_name: str = 'all'):
         """Sync the local repository with the remote repository."""
@@ -106,11 +106,11 @@ class GitRepo:
             logger.info("Successfully synced with remote repository, local repo: %s, remote: %s",
                         self.local_repo_path, self.remote_repo_url)
         except git.GitCommandError as e:
-            logger.error("Git command failed while syncing, repo: %s, branch: %s, Error: %s",
+            logger.error("Git command failed while syncing, repo: %s, branch: %s, error: %s",
                          self.local_repo_path, branch_name, str(e))
             raise RuntimeError(f"Git command failed while syncing, repo: {self.local_repo_path}.")
         except Exception as e:
-            logger.error("An unexpected error occurred while syncing, repo: %s, branch: %s, Error: %s",
+            logger.error("An unexpected error occurred while syncing, repo: %s, branch: %s, error: %s",
                          self.local_repo_path, branch_name, str(e))
             raise RuntimeError(f"Unexpected error during git sync, repo: {self.local_repo_path}.")
 
@@ -129,13 +129,13 @@ class GitRepo:
                 logger.info("Successfully discarded local changes in repo: %s", self.local_repo_path)
                 return True
         except git.GitCommandError as e:
-            logger.error("Git command failed while discarding changes, repo: %s, Error: %s",
+            logger.error("Git command failed while discarding changes, repo: %s. Error: %s",
                          self.local_repo_path, str(e))
             raise RuntimeError(f"Git command failed while discarding changes, repo: {self.local_repo_path}.")
         except Exception as e:
-            logger.error("An unexpected error occurred while discarding changes, repo: %s, Error: %s",
+            logger.error("An unexpected error occurred while discarding changes, repo: %s. Error: %s",
                          self.local_repo_path, str(e))
-            raise RuntimeError(f'An unexpected error occurred while discarding changes, repo: {self.local_repo_path}, '
+            raise RuntimeError(f'An unexpected error occurred while discarding changes, repo: {self.local_repo_path}. '
                                f'Error: {str(e)}.')
 
     @staticmethod
@@ -154,7 +154,7 @@ class GitRepo:
         try:
             return len(list(repo.iter_commits())) > 0
         except Exception as e:
-            logger.error("Error checking commits, repo: %s, Error: %s", self.local_repo_path, str(e))
+            logger.warn("Error checking commits, repo: %s, error: %s", self.local_repo_path, str(e))
             return False
 
     def _initial_commit(self, repo: git.Repo, msg: str):
@@ -165,9 +165,9 @@ class GitRepo:
             # Commit the changes as the first commit
             repo.index.commit(msg)
             logger.info("First commit created in repo: %s", self.local_repo_path)
-        except git.GitCommandError as e:
+        except git.GitCommandError:
             raise RuntimeError(f"Git command failed while creating initial commit, repo: {self.local_repo_path}.")
-        except Exception as e:
+        except Exception:
             raise RuntimeError(f'Unexpected error during initial commit in repo: {self.local_repo_path}.')
 
     def commit(self, msg: str, all_files: bool = True) -> bool:

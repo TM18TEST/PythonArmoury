@@ -67,12 +67,12 @@ class VerFileData:
 
 
 if __name__ == "__main__":
-    ver_data = VerFileData('TM18 File Compliance Monitor', '1.0.0.0', 'TM18 File Compliance Monitor',
-                           '© Xiamen Tianma Display Technology. All rights reserved.',
-                           'TM18_File_Compliance_Monitor.exe',
-                           'TM18 File Compliance Monitor',
-                           '0.1.2',
+    ver_data = VerFileData("Python Armoury", "1.0.0.0", "Python Armoury",
+                           '© XXX. All rights reserved.',
+                           'Python_Armoury.exe',
+                           'Python Armoury',
+                           '0.0.1',
                            'Language Neutral',
-                           'Xiamen Tianma Display Technology Co., Ltd.')
+                           'XXX Co., Ltd.')
     content = ver_data.__str__()
     print(content)

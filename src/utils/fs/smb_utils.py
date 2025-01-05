@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Copyright©2024 Xiamen Tianma Display Technology Co., Ltd. All rights reserved.
+Description: SMB Utility Class Source Code.
 """
 
 import os
@@ -49,7 +49,8 @@ class SmbConn:
         if BaseUtil.is_empty(self.remote_name):
             try:
                 host_name, _, _ = socket.gethostbyaddr(self.ip)
-            except Exception:
+            except Exception as e:
+                logger.exception("Failed to get host name by IP address, ip: %s. Exception: %s.", ip, e)
                 host_name = ''
             self.remote_name = host_name.split('.')[0]
             logger.info("Remote host name is empty, use obtained host name: %s.", self.remote_name)
@@ -83,8 +84,9 @@ class SmbConn:
             if self.conn:
                 self.conn.close()
                 logger.debug("Closed SMB connection success, ip: %s, user: %s.", self.ip, self.user)
-        except Exception as ex:
-            logger.error("Failed to close SMB connection, ip: %s, user: %s, error: %s.", self.ip, self.user, str(ex))
+        except Exception as e:
+            logger.exception("Failed to close SMB connection, ip: %s, user: %s. Exception: %s.",
+                             self.ip, self.user, e)
 
         # Exception handling:
         #   If an exception occurs, return True to indicate that the exception will no longer be thrown.
@@ -129,8 +131,8 @@ class SmbConn:
                     FsUtil.set_file_times(local_file_path, entry.create_time,
                                           entry.last_write_time, entry.last_access_time)
                     logger.debug("Downloaded and set times for the file success: %s", entry.filename)
-        except Exception as ex:
-            logger.error("Failed to download from SMB server, remote_path: %s, error: %s", remote_path, str(ex))
+        except Exception as e:
+            logger.exception("Failed to download from SMB server, remote_path: %s. Exception: %s", remote_path, e)
             raise
 
 
@@ -182,6 +184,16 @@ def _simple_smb_server_test():
 
 
 if __name__ == "__main__":
+    """
+    try:
+        # Create and use SmbConn objects using context managers
+        with SmbConn(ip='192.168.3.200', user='admin', password='', service_name='Share2') as s:
+            s.download('Temp\\计算机基本组件认识', 'I:\\Tmp\\smb')
+    except Exception as e:
+        logger.error(f"Download failed: {e}")
+    sys.exit(0)
+    """
+
     paths: list[tuple[str, str]] = [
         ('10.106.73.74', 'a1rep0120'),
         ('10.106.73.73', 'a1rep0130'),
@@ -200,7 +212,7 @@ if __name__ == "__main__":
         ('10.106.72.36', 'p1rep0120'),
         ('10.106.72.35', 'p1rep0130'),
     ]
-    for ip, identify in paths:
+    for ip_addr, identify in paths:
         local_pah: str = os.path.join('E:\\Recipes\\VTecRep3', identify)
         if os.path.exists(local_pah):
             FsUtil.remove_path(local_pah)
@@ -212,14 +224,6 @@ if __name__ == "__main__":
             password='11111111'
         )
         repo.clone()
-        shutil.copytree(f'\\\\{ip}\\env\\Recipe\\', local_pah, dirs_exist_ok=True)
-        logger.info("%s %s", ip, identify)
-    sys.exit(0)
-
-    try:
-        # Create and use SmbConn objects using context managers
-        with SmbConn(ip='192.168.3.200', user='admin', password='', service_name='Share2') as s:
-            s.download('Temp\\计算机基本组件认识', 'I:\\Tmp\\smb')
-    except Exception as e:
-        logger.error(f"Download failed: {e}")
+        shutil.copytree(f'\\\\{ip_addr}\\env\\Recipe\\', local_pah, dirs_exist_ok=True)
+        logger.info("%s %s", ip_addr, identify)
     sys.exit(0)

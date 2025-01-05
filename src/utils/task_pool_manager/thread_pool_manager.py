@@ -37,7 +37,8 @@ class ThreadPoolManager:
         future: Future = self.executor.submit(self._task_wrapper, handler, message)
         future.add_done_callback(self._handle_response)
 
-    def _task_wrapper(self, handler: Callable[[Any], Any], message: Dict[str, Any]) -> Dict[str, Any]:
+    @staticmethod
+    def _task_wrapper(handler: Callable[[Any], Any], message: Dict[str, Any]) -> Dict[str, Any]:
         """Wrapper to execute a handler and capture its result."""
         try:
             result = handler(message["data"])

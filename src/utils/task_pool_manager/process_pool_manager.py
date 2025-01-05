@@ -10,33 +10,6 @@ from queue import Empty
 from typing import Callable, Dict, Any, Optional
 
 
-# Worker process function
-def worker_function(request_queue: Queue, response_queue: Queue, handlers: Dict[str, Callable[[Any], Any]]) -> None:
-    """Worker process function to handle requests."""
-    while True:
-        try:
-            message = request_queue.get()
-            if message is None:  # Termination signal
-                break
-            message_type = message["type"]
-            data = message["data"]
-            task_id = message["id"]
-
-            if message_type not in handlers:
-                raise ValueError(f"Unknown message type: {message_type}")
-
-            # Call the corresponding handler
-            handler = handlers[message_type]
-            result = handler(data)
-            rsp = {"id": task_id, "type": message_type, "result": result}
-
-            # Send the result to the response queue
-            response_queue.put(rsp)
-
-        except Exception as exp:
-            response_queue.put({"error": str(exp)})
-
-
 # Handlers (must be defined at the top level)
 def text_handler(data: str) -> str:
     """Example handler that processes text."""

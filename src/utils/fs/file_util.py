@@ -4,6 +4,7 @@
 Description: File Utility Class Source Code.
 """
 
+
 class FileUtil:
     @staticmethod
     def is_binary_file(file_path: str) -> bool:

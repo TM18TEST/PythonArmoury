@@ -124,7 +124,6 @@ class PackageUtil:
         if ui_files:
             # Generate the Python code from ui file
             PackageUtil.overwrite_version_info(ver_config)
-            cmd = "pyside6-uic resource/ui/mainwindow.ui -o src/front_end/ui/generated/ui_mainwindow.py".format(ui_files[0], ui_files[1])
             cmd = "pyside6-uic {} -o {}".format(ui_files[0], ui_files[1])
             PackageUtil.run_command(cmd)
 
@@ -140,4 +139,3 @@ class PackageUtil:
 
 if __name__ == "__main__":
     pass
-

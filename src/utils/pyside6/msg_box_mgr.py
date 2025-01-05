@@ -7,11 +7,12 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QMessageBox, QStyle
 
+
 class ManagedMsgBox(QMessageBox):
     # Define a custom signal with the QMessageBox instance and the result
     finished_with_box = Signal(QMessageBox, int)
 
-    def __init__(self, parent = None, logger: Logger=None, *args, **kwargs):
+    def __init__(self, parent=None, logger: Logger = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._logger = logger
 
@@ -37,7 +38,7 @@ class ManagedMsgBox(QMessageBox):
 class MsgBoxMgr:
     DEFAULT_MAX_MSG_BOX_NUM = 8
 
-    def __init__(self, parent = None, logger=None, max_box_num: int = None):
+    def __init__(self, parent=None, logger=None, max_box_num: int = None):
         self._parent = parent
         self._logger = logger
         self._max_box_num = max_box_num or MsgBoxMgr.DEFAULT_MAX_MSG_BOX_NUM

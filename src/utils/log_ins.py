@@ -3,7 +3,6 @@
 """
 Description: Log Utility Class Source Code.
 """
-import importlib.util
 import os
 import logging
 import tempfile

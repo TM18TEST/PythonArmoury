@@ -3,7 +3,6 @@
 """
 Description: Git Utility Class Source Code.
 """
-import glob
 import os
 import shutil
 import sys
@@ -31,9 +30,24 @@ class GitUtil:
 
     @staticmethod
     def is_git_repository(dir_path: str) -> bool:
+        """
+        Checks if the given directory is a valid Git repository.
+
+        :param dir_path: Path to the directory to check.
+        :return: True if it's a valid Git repository, False otherwise.
+        """
+        if not isinstance(dir_path, str):
+            raise ValueError("dir_path must be a string")
+
+        if not os.path.exists(dir_path):
+            logger.warning("Path does not exist: %s.", dir_path)
+            return False
+
         try:
-            Repo(dir_path).git_dir
-            return True
+            with Repo(dir_path) as r:
+                if r.git_dir:
+                    return True
+                return False
         except InvalidGitRepositoryError:
             return False
         except NoSuchPathError:
@@ -41,21 +55,54 @@ class GitUtil:
 
     @staticmethod
     def delete_entries_except_git_data(dir_path: str) -> None:
-        for item in glob.glob(os.path.join(dir_path, '*')):
-            if os.path.isdir(item):
-                if '.git' not in item:
-                    shutil.rmtree(item)
-            else:
-                if '.gitignore' not in item:
-                    os.remove(item)
+        """
+        Deletes all entries in the specified directory except `.git` directories and `.gitignore` files.
+
+        :param dir_path: The directory path to clean.
+        """
+        if not os.path.exists(dir_path):
+            logger.warning(f"Directory does not exist: {dir_path}")
+            return
+
+        try:
+            for entry in os.scandir(dir_path):
+                if entry.is_dir():
+                    # Keep .git folder
+                    if entry.name == ".git":
+                        continue
+                    shutil.rmtree(entry.path)
+                    logger.info(f"Deleted directory: {entry.path}")
+                elif entry.is_file():
+                    # Keep .gitignore files
+                    if entry.name == ".gitignore":
+                        continue
+                    os.remove(entry.path)
+                    logger.info(f"Deleted file: {entry.path}")
+        except Exception as e:
+            logger.exception(f"Error while cleaning directory: %s. Exception: %s.", dir_path, e)
 
     @staticmethod
     def create_local_empty_git_repo(repo_path: str) -> bool:
-        if GitUtil.is_git_repository(repo_path):
-            return False
-        os.makedirs(repo_path, exist_ok=True)
-        Repo.init(repo_path)
-        return True
+        """
+        Creates a new local empty Git repository at the specified path.
+
+        :param repo_path: Path to the directory where the Git repository should be created.
+        :return: True if the repository was created successfully, False otherwise.
+        """
+        if not isinstance(repo_path, str):
+            raise ValueError("dir_path must be a string")
+
+        try:
+            # Check if it is already a Git repository
+            if GitUtil.is_git_repository(repo_path):
+                return False
+
+            # Create target directory
+            os.makedirs(repo_path, exist_ok=True)
+            Repo.init(repo_path)
+            return True
+        except GitCommandError as e:
+            raise RuntimeError(f"Failed to initialize Git repository at {repo_path}. Exception: {e}")
 
     @staticmethod
     def clone_git_repository(repo_url: str, local_repo_path: str, username: str, password: str):
@@ -139,7 +186,6 @@ class GitUtil:
 
         Args:
             repo_path (str): Git 仓库路径。
-            output_file (str): 输出的 diff 文件路径。
 
         Returns:
             None
