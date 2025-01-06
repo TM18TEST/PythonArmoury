@@ -154,7 +154,7 @@ class GitRepo:
         try:
             return len(list(repo.iter_commits())) > 0
         except Exception as e:
-            logger.warn("Error checking commits, repo: %s, error: %s", self.local_repo_path, str(e))
+            logger.warning("Error checking commits, repo: %s, error: %s", self.local_repo_path, str(e))
             return False
 
     def _initial_commit(self, repo: git.Repo, msg: str):
@@ -241,7 +241,7 @@ class GitRepo:
                             logger.error("Push to remote failed: %s", result.summary)
                             raise RuntimeError(f"Git push to remote failed: {result.summary}.")
                     else:
-                        logger.warn("Unexpected result type: %s, value: %s.", type(result), result)
+                        logger.warning("Unexpected result type: %s, value: %s.", type(result), result)
 
             logger.info("Successfully pushed to remote repository, local repo: %s, branch: %s",
                         self.local_repo_path, branch_name)
@@ -309,14 +309,4 @@ class GitRepo:
 
 
 if __name__ == "__main__":
-    git_repo = GitRepo("E:\\CC\\Temp\\gittest",
-                       'http://10.106.72.53:3000/recipe_vtec_rep/a1rep0120.git',
-                       'Administrator', 'Administrator1')
-    print(git_repo.is_cloned)
-    if not git_repo.is_cloned:
-        git_repo.clone()
-    print(git_repo.load_tracked_diff())
-    print(git_repo.load_untracked_diff())
-    git_repo.commit("test msg", True)
-    git_repo.push()
     sys.exit(0)

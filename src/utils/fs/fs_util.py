@@ -211,3 +211,30 @@ class FsUtil:
             ctypes.windll.kernel32.CloseHandle(handle)
         else:
             raise RuntimeError(f'Unsupported OS type: {os.name}')
+
+    @staticmethod
+    def create_dirs(base_path: str, *dir_paths: str):
+        """
+        创建多个目录（支持多个路径参数）
+
+        :param base_path: 根目录路径
+        :param dir_paths: 任意数量的目录路径参数
+        """
+        for dir_path in dir_paths:
+            full_path = os.path.join(base_path, dir_path)
+            os.makedirs(full_path, exist_ok=True)
+
+    @staticmethod
+    def create_files(base_path: str, *file_paths: str):
+        """
+        创建多个文件，支持路径分隔符创建子目录
+
+        :param base_path: 根目录路径
+        :param file_paths: 文件路径列表，包含子目录
+        """
+        for file_path in file_paths:
+            full_path = os.path.join(base_path, file_path)
+            dir_path = os.path.dirname(full_path)
+            os.makedirs(dir_path, exist_ok=True)
+            with open(full_path, 'w'):
+                pass
