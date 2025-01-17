@@ -7,11 +7,8 @@ import os
 import logging
 import tempfile
 import threading
-
-try:
-    from config.project_config import ProjectConfig
-except ModuleNotFoundError:
-    from config.armoury_project_config import ArmouryProjectConfig as ProjectConfig
+from datetime import datetime
+from utils.fs.fs_util import FsUtil
 
 
 class LogUtil:
@@ -20,10 +17,14 @@ class LogUtil:
 
     @staticmethod
     def _create_log_file() -> str:
-        log_dir = os.path.join(tempfile.gettempdir(), ProjectConfig.LOG_DIR)
+        # logger
+        log_dir = os.path.join(FsUtil.get_current_dir(), "log")
+        log_file_name = datetime.now().strftime("%Y%m%d_%H%M%S") + ".log"
+
+        log_dir = os.path.join(tempfile.gettempdir(), log_dir)
         if not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, ProjectConfig.LOG_FILE_NAME)
+        log_file = os.path.join(log_dir, log_file_name)
         return log_file
 
     @classmethod

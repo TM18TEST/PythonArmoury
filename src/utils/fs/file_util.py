@@ -3,6 +3,8 @@
 """
 Description: File Utility Class Source Code.
 """
+import os.path
+import shutil
 
 
 class FileUtil:
@@ -24,3 +26,9 @@ class FileUtil:
         except Exception as e:
             print(f"无法检查文件 {file_path} 是否为二进制: {e}")
             return False
+
+    @staticmethod
+    def compress_dir_to_zip(dir_path: str, output_path: str = None) -> None:
+        if dir_path is None or not os.path.exists(dir_path):
+            raise FileNotFoundError(f"Dir {dir_path} not found")
+        shutil.make_archive(base_name=output_path or dir_path, format='zip', root_dir=dir_path)

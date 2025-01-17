@@ -4,8 +4,8 @@
 Description: Git Utility Class Source Code.
 """
 import os
+import subprocess
 import sys
-from datetime import datetime
 from typing import Optional
 
 import git
@@ -14,10 +14,6 @@ from git.exc import InvalidGitRepositoryError, GitCommandError, NoSuchPathError
 
 from utils.base_util import BaseUtil
 from utils.fs.file_util import FileUtil
-from utils.log_ins import LogUtil
-from utils.time_util import TimeDuration
-
-logger = LogUtil.get_logger()
 
 
 class GitUtil:
@@ -76,20 +72,16 @@ class GitUtil:
 
     @staticmethod
     def clone_git_repository(repo_url: str, local_repo_path: str, username: str, password: str):
-        try:
-            repo = Repo.clone_from(
-                repo_url,
-                local_repo_path,
-                env={
-                    'GIT_ASKPASS': 'echo',
-                    'GIT_USERNAME': username,
-                    'GIT_PASSWORD': password
-                }
-            )
-            repo.close()
-        except GitCommandError as exc:
-            logger.error("Error cloning repository: %s", str(exc))
-            raise exc
+        repo = Repo.clone_from(
+            repo_url,
+            local_repo_path,
+            env={
+                'GIT_ASKPASS': 'echo',
+                'GIT_USERNAME': username,
+                'GIT_PASSWORD': password
+            }
+        )
+        repo.close()
 
     @staticmethod
     def create_git_repository(repo_path: str) -> bool:
@@ -97,7 +89,6 @@ class GitUtil:
             return False
         os.makedirs(repo_path, exist_ok=True)
         Repo.init(repo_path)
-        logger.info("Create git repository success, repo path: %s.", repo_path)
         return True
 
     @staticmethod
@@ -114,10 +105,25 @@ class GitUtil:
         repo.git.add(all=all_files)
         if repo.index.diff("HEAD") or repo.untracked_files:
             repo.index.commit(msg)
-            logger.info("Commit git repository success, repo path: %s, msg: %s, all files: %s.",
-                        repo_path, msg, all_files)
             return True
         return False
+
+    @staticmethod
+    def get_git_last_commit_id() -> str:
+        """Get the latest Git commit ID"""
+        return subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode('utf-8')
+
+    @staticmethod
+    def get_git_last_commit_date() -> str:
+        result = subprocess.run(['git', 'log', '-1', '--format=%cd', '--date=short'],
+                                stdout=subprocess.PIPE, text=True)
+        return result.stdout.strip()
+
+    @staticmethod
+    def get_git_last_commit_time():
+        result = subprocess.run(['git', 'log', '-1', '--format=%cd', '--date=format:%Y%m%d%H%M%S'],
+                                stdout=subprocess.PIPE, text=True)
+        return result.stdout.strip()
 
     @staticmethod
     def export_git_diff(repo_path, output_path):
@@ -280,7 +286,6 @@ class GitUtil:
 
             # 添加所有文件到暂存区，同时排除指定的目录和文件
             repo.git.add("--all", "--", *exclusions)
-            logger.debug("exclusions: %s.", exclusions)
             return True
 
 

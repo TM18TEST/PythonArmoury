@@ -15,6 +15,10 @@ class PyInstallerUtil:
         return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
 
     @staticmethod
+    def is_run_in_pyinstaller() -> bool:
+        return getattr(sys, 'frozen', False)
+
+    @staticmethod
     def get_bundle_dir_absolute_path() -> str:
         # PyInstaller will create a temporary folder temp and store the path in _MEIPASS
         if PyInstallerUtil.is_run_in_pyinstaller_bundle():
