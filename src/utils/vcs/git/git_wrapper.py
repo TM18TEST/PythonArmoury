@@ -146,8 +146,11 @@ class GitWrapper:
 
                 # Perform the commit
                 commit_num: int = g.commit_changes(commit_msg, author_name, author_email)
-                logger.info("Commit successful: '%s', number of commits: %d, repo path: %s",
-                            commit_msg, commit_num, repo_path)
+                if commit_num > 0:
+                    logger.info("Commit successful: '%s', number of commits: %d, repo path: %s",
+                                commit_msg, commit_num, repo_path)
+                else:
+                    logger.info("Unnecessary to commit because there is no changes, repo path: %s", repo_path)
                 return commit_num
 
         except Exception as e:

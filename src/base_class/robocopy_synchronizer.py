@@ -150,8 +150,7 @@ class RobocopySynchronizer(ThreadPoolTaskExecutor, JsonParser):
                          param.src_path, param.dst_path, process.returncode, cmd, process.stdout.strip(),
                          process.stderr.strip())
             raise RuntimeError(f"Robocopy mirror sync failed: {process.returncode}")
-        logger.info("Mirror sync succeeded: %s -> %s, cmd: %s\r\nstdout:\r\n%s.", param.src_path, param.dst_path, cmd,
-                    process.stdout.strip())
+        logger.info("Mirror sync succeeded: %s -> %s, cmd: %s.", param.src_path, param.dst_path, cmd)
         return 0
 
     def _submit_tasks(self, executor: concurrent.futures.ThreadPoolExecutor) -> Dict[concurrent.futures.Future, Any]:

@@ -286,7 +286,10 @@ class GitUtil:
 
             # 添加所有文件到暂存区，同时排除指定的目录和文件
             repo.git.add("--all", "--", *exclusions)
-            return True
+
+            if repo.head.is_valid():
+                return len(repo.index.diff("HEAD")) > 0
+            return len(repo.index.entries.keys()) > 0
 
 
 if __name__ == "__main__":
