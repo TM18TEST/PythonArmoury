@@ -13,6 +13,7 @@ from typing import Any, Dict
 from base_class.json_parser import JsonParser
 from base_class.thread_pool_task_executor import ThreadPoolTaskExecutor
 from utils.log_ins import LogUtil
+from utils.subprocess_util import SubprocessUtil
 
 logger = LogUtil.get_logger()
 
@@ -129,14 +130,14 @@ class RobocopySynchronizer(ThreadPoolTaskExecutor, JsonParser):
                     pass
 
         # Construct the Robocopy command
-        cmd = ["robocopy", param.src_path, param.dst_path, "/MIR", "/MT", "/Z", "/R:3", "/W:5", ""]
+        cmd = ["robocopy", param.src_path, param.dst_path, "/MIR", "/MT", "/Z", "/R:3", "/W:5"]
 
         # Add excluded file(s)
-        if len(param.exclude_files):
+        if param.exclude_files and len(param.exclude_files):
             cmd.extend(["/XF", *param.exclude_files])
 
         # Add excluded directories
-        if len(param.exclude_dirs):
+        if param.exclude_dirs and len(param.exclude_dirs):
             cmd.extend(["/XD", *param.exclude_dirs])
 
         # Add log file
@@ -144,7 +145,7 @@ class RobocopySynchronizer(ThreadPoolTaskExecutor, JsonParser):
             cmd.extend(["/TEE", f"/LOG+:{param.log_path}"])
 
         # Execute the Robocopy command
-        process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+        process = SubprocessUtil.run_cmd_without_window(cmd)
         if process.returncode >= 8:
             logger.error("Mirror sync failed: %s -> %s, result code: %d, cmd: %s\r\nstdout:\r\n%s\r\nstderr:\r\n%s.",
                          param.src_path, param.dst_path, process.returncode, cmd, process.stdout.strip(),
@@ -176,7 +177,7 @@ class RobocopySynchronizer(ThreadPoolTaskExecutor, JsonParser):
 
 if __name__ == "__main__":
     logger.info("The program has been started.")
-    runner = RobocopySynchronizer()
+    runner = RobocopySynchronizer(profile_path="D:\\Data\\Projects\\TM18TEST\\New\\ToolBox\\robocopy_synchronizer.json")
     runner.run()
     logger.info("The program is about to exit.")
     sys.exit(0)
