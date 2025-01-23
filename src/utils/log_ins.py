@@ -8,12 +8,15 @@ import logging
 import tempfile
 import threading
 from datetime import datetime
+from typing import Optional
+
 from utils.fs.fs_util import FsUtil
 
 
 class LogUtil:
-    _logger = None
-    _lock = threading.Lock()
+    LOG_FMT: str = "%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - Thread:%(thread)d - %(message)s"
+    _logger: Optional[logging.Logger] = None
+    _lock: threading.Lock = threading.Lock()
 
     @staticmethod
     def _create_log_file() -> str:
@@ -28,18 +31,49 @@ class LogUtil:
         return log_file
 
     @classmethod
+    def get_lock(cls) -> threading.Lock:
+        return cls._lock
+
+    @classmethod
+    def clear_console_handle_within_lock(cls) -> None:
+        # 移除已存在的 StreamHandler
+        if cls._logger is not None:
+            for handler in cls._logger.handlers:
+                if isinstance(handler, logging.StreamHandler):
+                    cls._logger.removeHandler(handler)
+
+    @classmethod
+    def clear_console_handle(cls) -> None:
+        with cls._lock:
+            cls.clear_console_handle_within_lock()
+
+    @classmethod
+    def create_console_log_handle(cls) -> logging.Handler:
+        console_handler = logging.StreamHandler()
+        formatter = logging.Formatter(cls.LOG_FMT)
+        console_handler.setFormatter(formatter)
+        return console_handler
+
+    @classmethod
+    def add_console_handle_within_lock(cls) -> None:
+        if cls._logger is not None:
+            cls._logger.addHandler(cls.create_console_log_handle())
+
+    @classmethod
+    def add_console_handle(cls) -> None:
+        with cls._lock:
+            cls.add_console_handle_within_lock()
+
+    @classmethod
     def get_logger(cls):
         with cls._lock:
             if cls._logger is None:
                 cls._logger = logging.getLogger("logger")
                 cls._logger.setLevel(logging.DEBUG)
-                console_handler = logging.StreamHandler()
                 log_file = cls._create_log_file()
                 file_handler = logging.FileHandler(log_file)
-                formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - '
-                                              'Thread:%(thread)d - %(message)s')
-                console_handler.setFormatter(formatter)
+                formatter = logging.Formatter(cls.LOG_FMT)
                 file_handler.setFormatter(formatter)
-                cls._logger.addHandler(console_handler)
+                cls._logger.addHandler(cls.create_console_log_handle())
                 cls._logger.addHandler(file_handler)
             return cls._logger
