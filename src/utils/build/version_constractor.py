@@ -99,8 +99,7 @@ class VerFileConstructor:
             f.write(file_content)
 
     def clear(self):
-        if os.path.exists(self._file_path):
-            shutil.rmtree(self._file_path)
+        FsUtil.force_remove(self._file_path, not_exist_ok=True)
 
 
 if __name__ == "__main__":

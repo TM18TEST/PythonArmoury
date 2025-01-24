@@ -22,10 +22,7 @@ class TestGitBase(unittest.TestCase):
                                                      "test_tool_sets", "test_bases", "test_git", "test_git_base")
 
     def tearDown(self):
-        try:
-            FsUtil.remove_path(self.test_class_data_root_dir)
-        except FileNotFoundError:
-            pass
+        FsUtil.force_remove(self.test_class_data_root_dir, not_exist_ok=True)
 
     def test_clear_git_repository_except_metadata(self):
         test_data_dir = os.path.join(self.test_class_data_root_dir, "test_clear_git_repository_except_metadata")

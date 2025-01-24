@@ -96,8 +96,7 @@ class FileDetailsHandler:
         self.write_version_content(content)
 
     def clear(self):
-        if os.path.exists(self._ver_file_path):
-            FsUtil.remove_path(self._ver_file_path)
+        FsUtil.force_remove(self._ver_file_path, not_exist_ok=True)
 
     @staticmethod
     def get_file_details(file_path: str) -> FileDetails:

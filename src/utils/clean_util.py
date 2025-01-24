@@ -15,7 +15,7 @@ class CleanUtil:
             full_path = os.path.join(root_path, entry)
             if os.path.isdir(full_path):
                 print(f"Deleting directory: {full_path}")
-                shutil.rmtree(full_path)
+                FsUtil.force_remove(full_path)
 
     @staticmethod
     def resource_clean_dir_by_name(root_path: str, dir_name_list: list[str], del_dir_name: str) -> None:
@@ -24,7 +24,7 @@ class CleanUtil:
             for path in path_obj.rglob(del_dir_name):
                 if path.is_dir():
                     print(f"Deleting directory: {path}")
-                    shutil.rmtree(path)
+                    FsUtil.force_remove(path)
 
 
 if __name__ == "__main__":

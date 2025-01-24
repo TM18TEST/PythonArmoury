@@ -35,12 +35,12 @@ class GitWrapper:
                     # Keep .git folder
                     if entry.name == ".git":
                         continue
-                    shutil.rmtree(entry.path)
+                    FsUtil.force_remove(entry.path)
                 elif entry.is_file():
                     # Keep .gitignore files
                     if entry.name == ".gitignore":
                         continue
-                    os.remove(entry.path)
+                    FsUtil.force_remove(entry.path)
         except Exception as e:
             logger.exception(f"Error while cleaning directory: %s. Exception: %s.", dir_path, e)
 

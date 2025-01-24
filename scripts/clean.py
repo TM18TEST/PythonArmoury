@@ -16,7 +16,7 @@ class CleanUtil:
             full_path = os.path.join(root_path, entry)
             if os.path.isdir(full_path):
                 print(f"Deleting directory: {full_path}")
-                shutil.rmtree(full_path)
+                FsUtil.force_remove(full_path)
 
     @staticmethod
     def clean_cache() -> None:
@@ -26,11 +26,11 @@ class CleanUtil:
         for path in src_path.rglob('__pycache__'):
             if path.is_dir():
                 print(f"Deleting directory: {path}")
-                shutil.rmtree(path)
+                FsUtil.force_remove(path)
         for path in test_path.rglob('__pycache__'):
             if path.is_dir():
                 print(f"Deleting directory: {path}")
-                shutil.rmtree(path)
+                FsUtil.force_remove(path)
 
 
 if __name__ == "__main__":

@@ -19,10 +19,7 @@ class TestFsUtil(unittest.TestCase):
         self.test_class_data_root_dir = os.path.join(self.test_data_root_dir, "test_utils", "test_fs_utils")
 
     def tearDown(self):
-        try:
-            FsUtil.remove_path(self.test_class_data_root_dir)
-        except FileNotFoundError:
-            pass
+        FsUtil.force_remove(self.test_class_data_root_dir, not_exist_ok=True)
 
     @patch.object(FsUtil, 'get_project_root_path', return_value='mocker')
     def test_get_project_root_path(self, mocker):
@@ -66,13 +63,13 @@ class TestFsUtil(unittest.TestCase):
         FsUtil.remake_dirs(test_data_dir)
         self.assertTrue(FsUtil.is_empty_directory(test_data_dir))
 
-        FsUtil.remove_path(test_data_dir)
+        FsUtil.force_remove(test_data_dir)
         with open(test_data_dir, 'w') as file:
             file.write("Hello world!")
         FsUtil.remake_dirs(test_data_dir)
         self.assertTrue(FsUtil.is_empty_directory(test_data_dir))
 
-        FsUtil.remove_path(test_data_dir)
+        FsUtil.force_remove(test_data_dir)
 
     def test_move_path_file(self):
         test_data_dir = os.path.join(self.test_class_data_root_dir, "test_move_path")

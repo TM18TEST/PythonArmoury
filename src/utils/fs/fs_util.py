@@ -12,6 +12,7 @@ from pathlib import Path
 import tempfile
 from typing import AnyStr
 
+from utils.os_util import OsUtil
 from utils.pyinstaller_util import PyInstallerUtil
 
 
@@ -67,11 +68,16 @@ class FsUtil:
         return tempfile.gettempdir()
 
     @staticmethod
-    def is_empty_directory(path: str) -> bool:
-        return os.path.isdir(path) and not os.listdir(path)
+    def is_empty_directory(path: str | Path) -> bool:
+        # return os.path.isdir(path) and not os.listdir(path)
+        return FsUtil.is_empty_dir(path)
 
     @staticmethod
-    def is_empty_dir(path: str) -> bool:
+    def is_empty_dir(path: str | Path) -> bool:
+        if isinstance(path, Path):
+            path = str(path)
+        if not os.path.isdir(path):
+            return False
         with os.scandir(path) as entries:
             for _ in entries:
                 return False
@@ -84,12 +90,18 @@ class FsUtil:
         return False
 
     @staticmethod
-    def remove_path(path: str) -> None:
-        """
-        Remove specified file, empty directory or non-empty directory.
+    def _force_remove_in_windows(path: str, not_exist_ok: bool = False) -> None:
+        if os.path.isfile(path):
+            os.system(f'del /F /Q "{path}"')
+        elif os.path.isdir(path):
+            os.system(f'rmdir /S /Q "{path}"')
+        else:
+            if not_exist_ok:
+                return
+            raise FileNotFoundError(f"Path not found: {path}")
 
-        :param path: The path of object to be removed.
-        """
+    @staticmethod
+    def _force_remove_in_linux(path: str, not_exist_ok: bool = False) -> None:
         if os.path.isfile(path):
             # Remove file
             os.remove(path)
@@ -102,14 +114,36 @@ class FsUtil:
                 shutil.rmtree(path)
         else:
             if not os.path.exists(path):
+                if not_exist_ok:
+                    return
                 raise FileNotFoundError("The path({}) is not exist.".format(path))
             else:
                 raise TypeError("The path({}) neither a file nor a directory.".format(path))
 
     @staticmethod
+    def force_remove(path: str | Path, not_exist_ok: bool = False) -> None:
+        """
+        Remove specified file, empty directory or non-empty directory.
+
+        :param path: The path of object to be removed.
+        :param not_exist_ok: Discard errors if the path is not exist.
+        """
+        if isinstance(path, Path):
+            path = str(path)
+        if OsUtil.is_windows():
+            return FsUtil._force_remove_in_windows(path, not_exist_ok)
+        elif OsUtil.is_linux() or OsUtil.is_mac():
+            return FsUtil._force_remove_in_linux(path, not_exist_ok)
+        else:
+            raise OSError(f"Unknown OS type")
+
+    @staticmethod
+    def remove_path(path: str | Path, not_exist_ok: bool = False) -> None:
+        return FsUtil.force_remove(path, not_exist_ok)
+
+    @staticmethod
     def remake_dirs(path: str) -> None:
-        if os.path.exists(path):
-            FsUtil.remove_path(path)
+        FsUtil.force_remove(path, not_exist_ok=True)
         os.makedirs(path, exist_ok=True)
 
     @staticmethod

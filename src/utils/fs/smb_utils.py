@@ -214,8 +214,7 @@ if __name__ == "__main__":
     ]
     for ip_addr, identify in paths:
         local_pah: str = os.path.join('E:\\Recipes\\VTecRep3', identify)
-        if os.path.exists(local_pah):
-            FsUtil.remove_path(local_pah)
+        FsUtil.force_remove(local_pah, not_exist_ok=True)
         os.makedirs(local_pah, exist_ok=True)
         repo = GitRepo(
             local_repo_path=local_pah,
