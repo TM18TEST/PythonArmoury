@@ -46,7 +46,7 @@ class JsonParser:
             return default_dir_profile
         return None
 
-    def _update_profile_path(self):
+    def _update_profile_path(self) -> None:
         """
         Update the profile path by checking the input and default paths.
 
@@ -62,10 +62,10 @@ class JsonParser:
             raise FileNotFoundError("Unable to locate the default profile.")
         logger.info("Using profile: %s.", self._profile_path)
 
-    def _do_parsr_profile_content(self, json_data):
+    def _do_parsr_profile_content(self, json_data) -> None:
         pass
 
-    def _parse_profile(self):
+    def _parse_profile(self) -> None:
         """
         Parse parameter(s) from specified profile file.
 

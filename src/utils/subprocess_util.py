@@ -22,7 +22,7 @@ class SubprocessUtil:
         print(result.stdout)
         print(result.stderr)
         if result.returncode != 0:
-            raise RuntimeError(f"Command '{cmd}' failed with exit code {result.returncode}")
+            raise RuntimeError(f"Command '{cmd}' failed with exit code {result.returncode}, stderr: {result.stderr}")
 
     @staticmethod
     def run_cmd_without_window(cmd: str | list[str]) -> subprocess.CompletedProcess:

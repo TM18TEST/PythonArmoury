@@ -73,6 +73,17 @@ class FsUtil:
         return FsUtil.is_empty_dir(path)
 
     @staticmethod
+    def is_empty_dir2(path: str | Path):
+        path_str: str = path
+        if isinstance(path, Path):
+            path_str = str(path)
+        if not os.path.isdir(path_str):
+            return False
+        for _ in path.iterdir():
+            return False
+        return True
+
+    @staticmethod
     def is_empty_dir(path: str | Path) -> bool:
         if isinstance(path, Path):
             path = str(path)
