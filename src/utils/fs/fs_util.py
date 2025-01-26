@@ -68,31 +68,19 @@ class FsUtil:
         return tempfile.gettempdir()
 
     @staticmethod
-    def is_empty_directory(path: str | Path) -> bool:
-        # return os.path.isdir(path) and not os.listdir(path)
-        return FsUtil.is_empty_dir(path)
-
-    @staticmethod
-    def is_empty_dir2(path: str | Path):
+    def is_empty_dir(path: str | Path):
         path_str: str = path
         if isinstance(path, Path):
             path_str = str(path)
+        elif isinstance(path, str):
+            path = Path(path_str)
+        else:
+            raise TypeError(f"Invalid type of path: {type(path)}")
+        if not os.path.exists(path_str):
+            return False
         if not os.path.isdir(path_str):
             return False
-        for _ in path.iterdir():
-            return False
-        return True
-
-    @staticmethod
-    def is_empty_dir(path: str | Path) -> bool:
-        if isinstance(path, Path):
-            path = str(path)
-        if not os.path.isdir(path):
-            return False
-        with os.scandir(path) as entries:
-            for _ in entries:
-                return False
-        return True
+        return not any(path.iterdir())
 
     @staticmethod
     def is_dir_exist_and_not_empty(path: str) -> bool:

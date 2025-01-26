@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
+from utils.base_util import BaseUtil
 from utils.fs.compress_util import CompressUtil
 from utils.fs.fs_util import FsUtil
 
@@ -16,6 +17,7 @@ from utils.fs.fs_util import FsUtil
 class DataBackupParam:
     src_path: str
     dst_dir_path: str
+    backup_file_name_prefix: str = None
     max_backups_num: int = None
     compress_fmt: str = 'zip'
     compress_level: int = None
@@ -30,20 +32,21 @@ class DataBackup:
         # Declare some variables of current instance
         self._src_path: str = param.src_path
         self._dst_dir_path: str = param.dst_dir_path
+        self._backup_file_name_prefix: str = param.backup_file_name_prefix
         self._max_backups_num: Optional[int] = param.max_backups_num
         self._compress_fmt: Optional[str] = param.compress_fmt
         self._compress_level: Optional[int] = param.compress_level
 
-    def check_params(self):
+    def check_params(self) -> None:
         if not os.path.exists(self._src_path):
             raise FileNotFoundError(f"Source not exist: {self._src_path}")
         if self._max_backups_num < 0:
             raise ValueError(f"Invalid max backups num: {self._max_backups_num}")
 
-    def pre_backup(self):
+    def pre_backup(self) -> None:
         pass
 
-    def prepare_env(self):
+    def prepare_env(self) -> None:
         os.makedirs(self._dst_dir_path, exist_ok=True)
 
     def construct_backup_name_prefix(self) -> str:
@@ -53,6 +56,8 @@ class DataBackup:
         Returns:
             str: The constructed backup name prefix.
         """
+        if not BaseUtil.is_empty(self._backup_file_name_prefix):
+            return self._backup_file_name_prefix
         return os.path.basename(self._src_path) + "_backup_"
 
     def construct_backup_name(self) -> str:
@@ -97,7 +102,7 @@ class DataBackup:
         matches: list[str] = [f[0] for f in path_times]
         return matches
 
-    def rotate(self):
+    def rotate(self) -> None:
         if self._max_backups_num is None:
             return
         backups: list[str] = self.list_backups()
@@ -107,7 +112,7 @@ class DataBackup:
         for i in range(del_num):
             FsUtil.remove_path(backups[i])
 
-    def post_backup(self):
+    def post_backup(self) -> None:
         pass
 
     def run(self) -> str:
