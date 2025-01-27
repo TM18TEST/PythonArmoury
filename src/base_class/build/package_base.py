@@ -34,9 +34,15 @@ class PackageBase:
         output_path: str = os.path.join(output_dir_path, dir_name) + "_v" + self._packaged_file_details.product_version
         FileUtil.compress_dir_to_zip(dir_path, output_path)
 
+    def post_action(self):
+        pass
+
     def run(self):
         self.prepare_env()
         self._file_details_handler.generate()
-        SubprocessUtil.run_cmd_list(["Pyinstaller", self._spec_file_path, "--clean"])
+        ret: int = SubprocessUtil.popen_stdout(["Pyinstaller", self._spec_file_path, "--clean"])
+        if ret != 0:
+            raise RuntimeError(f"PyInstaller error: {ret}")
         self._file_details_handler.clear()
         self.package_builds()
+        self.post_action()

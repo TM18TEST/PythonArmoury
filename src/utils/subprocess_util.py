@@ -34,6 +34,12 @@ class SubprocessUtil:
                            text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         return p
 
+    @staticmethod
+    def popen_stdout(cmd: str | list[str]) -> int:
+        p = subprocess.Popen(cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True)
+        p.wait()
+        return p.returncode
+
 
 if __name__ == "__main__":
     sys.exit(0)
