@@ -11,6 +11,7 @@ from typing import Any, Dict
 
 from base_class.json_parser import JsonParser
 from base_class.thread_pool_task_executor import ThreadPoolTaskExecutor
+from utils.fs.fs_util import FsUtil
 from utils.log_ins import LogUtil
 from utils.subprocess_util import SubprocessUtil
 
@@ -106,9 +107,9 @@ class RobocopySynchronizer(ThreadPoolTaskExecutor, JsonParser):
             RuntimeError: If subprocess run failed.
         """
         # Validate source path
-        if not os.path.exists(param.src_path):
+        if not FsUtil.is_exist(param.src_path):
             raise FileNotFoundError(f"Source directory '{param.src_path}' does not exist.")
-        if not os.path.isdir(param.src_path):
+        if not FsUtil.is_dir(param.src_path):
             raise NotADirectoryError(f"Source path '{param.src_path}' is not a directory.")
 
         # Create destination path

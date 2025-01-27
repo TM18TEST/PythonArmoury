@@ -8,6 +8,7 @@ import glob
 import hashlib
 import os
 import shutil
+import time
 from pathlib import Path
 import tempfile
 from typing import AnyStr
@@ -271,3 +272,30 @@ class FsUtil:
             os.makedirs(dir_path, exist_ok=True)
             with open(full_path, 'w'):
                 pass
+
+    @staticmethod
+    def is_exist(path: str, retries: int = 3, delay: float = 0.05):
+        """ Combine Pathlib and retry mechanisms to improve the reliability of SMB access """
+        for _ in range(retries):
+            try:
+                p = Path(path)
+                return p.exists()
+            except Exception as e:
+                print(f"Warning: Failed to check {path}, retrying... ({e})")
+                time.sleep(delay)
+        raise RuntimeError(f"Failed to check {path} in {retries} times, interval: {delay} sec")
+
+    @staticmethod
+    def is_dir(path: str, retries: int = 3, delay: float = 0.05):
+        """ Combine Pathlib and retry mechanisms to improve the reliability of SMB access """
+        for _ in range(retries):
+            try:
+                p = Path(path)
+                if p.exists() and p.is_dir():
+                    return True
+                else:
+                    return False
+            except Exception as e:
+                print(f"Warning: Failed to check {path}, retrying... ({e})")
+                time.sleep(delay)
+        raise RuntimeError(f"Failed to check {path} in {retries} times, interval: {delay} sec")
