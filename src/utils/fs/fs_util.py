@@ -274,7 +274,7 @@ class FsUtil:
                 pass
 
     @staticmethod
-    def is_exist(path: str, retries: int = 3, delay: float = 0.05):
+    def is_exist(path: str, retries: int = 30, delay: float = 0.05):
         """ Combine Pathlib and retry mechanisms to improve the reliability of SMB access """
         for _ in range(retries):
             try:
@@ -286,7 +286,7 @@ class FsUtil:
         raise RuntimeError(f"Failed to check {path} in {retries} times, interval: {delay} sec")
 
     @staticmethod
-    def is_dir(path: str, retries: int = 3, delay: float = 0.05):
+    def is_dir(path: str, retries: int = 30, delay: float = 0.05):
         """ Combine Pathlib and retry mechanisms to improve the reliability of SMB access """
         for _ in range(retries):
             try:
