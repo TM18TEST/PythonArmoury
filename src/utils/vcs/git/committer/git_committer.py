@@ -3,6 +3,7 @@
 """
 Description: General Gti Committer Base Class.
 """
+import time
 from typing import Optional
 
 import git
@@ -83,6 +84,7 @@ class GitCommitter:
         # Group commits by files modification time
         commit_num: int = 0
         if self.time_diff_sec is not None:
+            start_time: float = time.time()
             commit_num = ModifyTimeGroupedCommitter(repo_path=self.repo_path,
                                                     time_diff_sec=self.time_diff_sec,
                                                     exclude_files=self.exclude_files_list,
@@ -90,6 +92,8 @@ class GitCommitter:
                                                     commit_msg=message,
                                                     author_name=author_name,
                                                     author_email=author_email).run()
+            logger.info("Successfully committed changes, total commits: %d, elapsed time: %.3f seconds.",
+                        commit_num, time.time() - start_time)
             return commit_num
 
         # Commit changes normally

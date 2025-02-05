@@ -162,19 +162,28 @@ class ModifyTimeGroupedCommitter:
         Returns:
             Optional[int]: The number of commits created.
         """
+        # Get changes files
         start_time: float = time.time()
         self._file_path_modify_time_list = self.get_repo_changes_files(self._repo_path, self._exclude_files,
                                                                        self._exclude_dirs)
         if not self._file_path_modify_time_list:
             logger.info("No changes detected in the repository: %s.", self._repo_path)
             return 0
+        logger.debug("Successfully get changes files, file num: %d, elapsed time: %.3f seconds.",
+                     len(self._file_path_modify_time_list), time.time() - start_time)
 
+        # Group files by modified time
+        start_time = time.time()
         self._grouped_files = self.group_files_by_modify_time(self._file_path_modify_time_list, self._time_diff_sec)
+        logger.debug("Successfully group files by modified time, group num: %d, elapsed time: %.3f seconds.",
+                     len(self._grouped_files), time.time() - start_time)
 
+        # Commit by group
+        start_time = time.time()
         commit_num = self.create_commits_by_group(self._repo_path, self._grouped_files,
                                                   self._commit_msg, self._commit_author)
-        logger.info("Successfully committed changes, total commits: %d, elapsed time: %.3f seconds.",
-                    commit_num, time.time() - start_time)
+        logger.debug("Successfully committed changes by group, total commits: %d, elapsed time: %.3f seconds.",
+                     commit_num, time.time() - start_time)
         return commit_num
 
 
