@@ -80,7 +80,6 @@ class GitWrapper:
                                 username=repo_username,
                                 password=repo_password)
                     r.clone()
-                    logger.info("Cloned remote repository: %s to %s", repo_url, repo_path)
                     return True
                 except Exception as e:
                     logger.error("Failed to clone repository from %s. Error: %s", repo_url, e)

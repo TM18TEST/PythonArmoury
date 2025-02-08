@@ -26,7 +26,7 @@ class ThreadPoolTaskExecutor:
         self._task_count: int = task_count
         self._max_workers: int = max_workers
         if max_workers is None:
-            self._max_workers = min(self._task_count, 8)
+            self._max_workers = min(self._task_count, 16)
         self.params_demo: list[Any] = []
         logger.info("Concurrent executor initialized successfully.")
 

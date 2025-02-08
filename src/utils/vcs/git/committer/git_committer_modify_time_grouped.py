@@ -60,9 +60,11 @@ class ModifyTimeGroupedCommitter:
         """
         start_time: float = time.time()
         with git.Repo(repo_path) as repo:
+            # TODO: Time-consuming optimize, 120 Second
             modified_files = [item.a_path for item in repo.index.diff(None)]
             untracked_files = repo.untracked_files
             changes_files = modified_files + untracked_files
+        logger.debug("Collect changes from repo success, elapsed time: %.3f seconds.", time.time() - start_time)
 
         file_list = []
         for file in changes_files:
@@ -141,9 +143,13 @@ class ModifyTimeGroupedCommitter:
         commit_num = 0
         with git.Repo(repo_path) as repo:
             for group in grouped_change_files:
+                start_time = time.time()
                 # Add all files in the group
+                # TODO: Time-consuming optimize
                 for file_relpath, _ in group:
                     repo.git.add(file_relpath)
+                logger.debug("Successfully add changes files in one group, file num: %d, elapsed time: %.3f seconds.",
+                             len(group), time.time() - start_time)
 
                 # Use the modification time of the last file in the group as the commit time
                 commit_time = datetime.fromtimestamp(group[-1][1], tz=timezone(timedelta(hours=8)))
@@ -152,6 +158,8 @@ class ModifyTimeGroupedCommitter:
                 repo.index.commit(message=commit_msg, author=commit_author,
                                   author_date=commit_time, commit_date=commit_time)
                 commit_num += 1
+                logger.debug("Successfully commit for one group, file num: %d, elapsed time: %.3f seconds.",
+                             len(group), time.time() - start_time)
 
         return commit_num
 

@@ -5,6 +5,7 @@ Description: Git Repository Class Source Code.
 """
 
 import sys
+import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -59,8 +60,11 @@ class GitRepo:
             remote_url = self._construct_remote_repo_url_with_auth_info()
 
             # Perform the clone operation
+            logger.debug("Goto clone repository from %s to %s.", self.remote_repo_url, self.local_repo_path)
+            start_time: float = time.time()
             git.Repo.clone_from(remote_url, self.local_repo_path)
-            logger.info("Cloned repository successfully from %s to %s.", self.remote_repo_url, self.local_repo_path)
+            logger.info("Cloned repository successfully from %s to %s, elapsed time: %.3f seconds.",
+                        self.remote_repo_url, self.local_repo_path, time.time() - start_time)
         except git.GitCommandError as e:
             logger.exception("Git clone failed, remote: %s, local: %s. Exception: %s",
                              self.remote_repo_url, self.local_repo_path, e)
