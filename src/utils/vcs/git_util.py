@@ -291,6 +291,47 @@ class GitUtil:
                 return len(repo.index.diff("HEAD")) > 0
             return len(repo.index.entries.keys()) > 0
 
+    @staticmethod
+    def get_local_repo_commit_id(repo_path: str, branch_name: str = "main") -> str:
+        with Repo.init(repo_path) as r:
+            if branch_name not in r.heads:
+                raise ValueError(f"Branch not exist: {branch_name}")
+            return r.heads[branch_name].commit.hexsha
+
+    @staticmethod
+    def get_remote_repo_last_commit(repo_url: str, branch: str = "main") -> Optional[str]:
+        refs = git.Git().ls_remote(repo_url, heads=True, tags=False)
+        for ref in refs.split('\n'):
+            if f'refs/heads/{branch}' in ref:
+                return ref.split('\t')[0]
+        return None
+
+    @staticmethod
+    def force_sync_from_remote(local_path: str, branch: str = "main") -> None:
+        with Repo.init(local_path) as r:
+            # 强制拉取远端最新数据（覆盖本地引用）
+            origin = r.remotes.origin
+            origin.fetch(force=True, prune=True, tags=False)
+
+            # 强制拉取并同步
+            r.git.reset("--hard", f"origin/{branch}")
+            r.git.clean("-dfx")
+
+    @staticmethod
+    def construct_remote_repo_url_with_auth_info(url: str, username: str, password: str) -> Optional[str]:
+        """Construct the URL for cloning with authentication information."""
+        if username and password:
+            if url.startswith('http://'):
+                return url.replace('http://', f'http://{username}:{password}@')
+            elif url.startswith('https://'):
+                return url.replace('https://', f'https://{username}:{password}@')
+            # 如果使用 SSH 协议，可以将认证信息嵌入 ssh-agent 等其他机制
+            # elif url.startswith('git@'):
+            #     return url.replace('git@', f'git@{self.username}:{self.password}@')
+            raise RuntimeError(f'Unsupported repo protocol for authentication: {url}')
+        else:
+            RuntimeError(f'Empty username or password for authentication, url: {url}')
+
 
 if __name__ == "__main__":
     print(GitUtil.is_git_repository("D:\\Data\\Temp\\gittest"))

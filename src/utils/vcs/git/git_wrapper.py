@@ -4,7 +4,6 @@
 Description: General Gti Archiver Base Class.
 """
 import os
-import shutil
 import git
 
 from datetime import datetime

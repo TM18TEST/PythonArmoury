@@ -39,19 +39,9 @@ class GitRepo:
 
     def _construct_remote_repo_url_with_auth_info(self) -> Optional[str]:
         """Construct the URL for cloning with authentication information."""
-        url: str = self.remote_repo_url
-        if self.username and self.password:
-            if url.startswith('http://'):
-                return url.replace('http://', f'http://{self.username}:{self.password}@')
-            elif url.startswith('https://'):
-                return url.replace('https://', f'https://{self.username}:{self.password}@')
-            # 如果使用 SSH 协议，可以将认证信息嵌入 ssh-agent 等其他机制
-            # elif url.startswith('git@'):
-            #     return url.replace('git@', f'git@{self.username}:{self.password}@')
-            raise RuntimeError(f'Unsupported repo protocol for authentication: {url}')
-        else:
-            logger.error("Username and password are required for HTTP cloning.")
-            RuntimeError(f'Empty username or password for authentication, url: {url}')
+        return GitUtil.construct_remote_repo_url_with_auth_info(self.remote_repo_url,
+                                                                self.username,
+                                                                self.password)
 
     def clone(self):
         """Clone the remote repository to the local path, using username and password for authentication."""

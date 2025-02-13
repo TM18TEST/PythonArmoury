@@ -117,7 +117,8 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
             raise ValueError("Archive task list is empty.")
         logger.info("Successfully parse profile, archive task count: %d.", len(self._archive_tasks_param_list))
 
-    def _pre_init_repo(self, ident: str, dir_path: str) -> None:
+    def _pre_init_repo(self, ident: str, dir_path: str, repo_url: str = None,
+                       repo_username: str = None, repo_password: str = None) -> None:
         logger.debug("Do nothing in Pre-InitRepo step, id: %s, dir path: %s.", ident, dir_path)
 
     def _pre_commit(self, ident: str, dir_path: str) -> None:
