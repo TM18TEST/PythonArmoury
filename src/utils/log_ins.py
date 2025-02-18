@@ -17,6 +17,7 @@ class LogUtil:
     LOG_FMT: str = "%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - Thread:%(thread)d - %(message)s"
     _logger: Optional[logging.Logger] = None
     _lock: threading.Lock = threading.Lock()
+    _log_file_path: str = None
 
     @staticmethod
     def _create_log_file() -> str:
@@ -29,6 +30,10 @@ class LogUtil:
             os.makedirs(log_dir, exist_ok=True)
         log_file = os.path.join(log_dir, log_file_name)
         return log_file
+
+    @classmethod
+    def get_log_file_path(cls) -> str:
+        return cls._log_file_path
 
     @classmethod
     def get_lock(cls) -> threading.Lock:
@@ -70,8 +75,8 @@ class LogUtil:
             if cls._logger is None:
                 cls._logger = logging.getLogger("logger")
                 cls._logger.setLevel(logging.DEBUG)
-                log_file = cls._create_log_file()
-                file_handler = logging.FileHandler(log_file)
+                cls._log_file_path = cls._create_log_file()
+                file_handler = logging.FileHandler(cls._log_file_path)
                 formatter = logging.Formatter(cls.LOG_FMT)
                 file_handler.setFormatter(formatter)
                 cls._logger.addHandler(cls.create_console_log_handle())

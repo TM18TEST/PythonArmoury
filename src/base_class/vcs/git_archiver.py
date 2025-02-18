@@ -6,7 +6,7 @@ Description: General Gti Archiver Base Class.
 import sys
 import concurrent.futures
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from base_class.json_parser import JsonParser
 from base_class.thread_pool_task_executor import ThreadPoolTaskExecutor
@@ -46,11 +46,13 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
     def __init__(self, profile_path: str = None, default_profile_name: str = None):
         # Declare some variables of current instance
         self._archive_tasks_param_list: list[GitArchiveTaskParam] = []
+        self._max_workers: Optional[int] = None
 
         # Initialize the base class
         JsonParser.__init__(self, profile_path=profile_path,
                             default_profile_name=default_profile_name or self.DEFAULT_PROFILE_NAME)
-        ThreadPoolTaskExecutor.__init__(self, task_count=len(self._archive_tasks_param_list))
+        ThreadPoolTaskExecutor.__init__(self, task_count=len(self._archive_tasks_param_list),
+                                        max_workers=self._max_workers)
 
     @staticmethod
     def parse_global_param(json_data) -> GitArchiveTaskParam:
@@ -109,6 +111,9 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
 
         # Parse global parameter(s)
         task_param: GitArchiveTaskParam = self.parse_global_param(json_data)
+        if "git_archiver" in json_data and "max_workers" in json_data.get("git_archiver"):
+            self._max_workers = json_data.get("git_archiver").get("max_workers")
+            logger.debug("Max workers: %d.", self._max_workers)
 
         # Parse map(s)
         for map_json in json_data["maps"]:
@@ -123,6 +128,9 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
 
     def _pre_commit(self, ident: str, dir_path: str) -> None:
         logger.debug("Do nothing in pre-commit step, id: %s, dir path: %s.", ident, dir_path)
+
+    def _post_push(self, ident: str, dir_path: str) -> None:
+        logger.debug("Do nothing in post-push step, id: %s, dir path: %s.", ident, dir_path)
 
     # @staticmethod
     def _archive_by_git(self, param: GitArchiveTaskParam) -> int:
@@ -158,6 +166,7 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
         # push after commit
         if commit_num > 0 and param.url and param.username and param.password and param.push_after_commit:
             GitWrapper.push(repo_path=param.dir_path)
+        self._post_push(param.ident, param.dir_path)
         return 0
 
     def _submit_tasks(self, executor: concurrent.futures.ThreadPoolExecutor) -> Dict[concurrent.futures.Future, Any]:
