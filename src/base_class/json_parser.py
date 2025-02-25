@@ -44,7 +44,8 @@ class JsonParser:
         default_dir_profile = os.path.join(FsUtil.get_process_root_path(), "resource", "config", default_profile_name)
         if os.path.isfile(default_dir_profile):
             return default_dir_profile
-        return None
+
+        raise FileNotFoundError(f"Unable to locate the default profile: {current_dir_profile}, {default_dir_profile}.")
 
     def _update_profile_path(self) -> None:
         """
@@ -58,8 +59,6 @@ class JsonParser:
             return
 
         self._profile_path = self.get_default_profile_path(self._default_profile_name)
-        if not self._profile_path:
-            raise FileNotFoundError("Unable to locate the default profile.")
         logger.info("Using profile: %s.", self._profile_path)
 
     def _do_parsr_profile_content(self, json_data) -> None:
