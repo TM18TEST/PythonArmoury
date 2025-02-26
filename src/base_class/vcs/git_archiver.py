@@ -126,8 +126,42 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
                        repo_username: str = None, repo_password: str = None) -> None:
         logger.debug("Do nothing in Pre-InitRepo step, id: %s, dir path: %s.", ident, dir_path)
 
+    @staticmethod
+    def _init_repo_with_retry(param: GitArchiveTaskParam, retries: int = 10) -> None:
+        for i in range(retries):
+            try:
+                GitWrapper.init_repo(repo_path=param.dir_path,
+                                     repo_url=param.url,
+                                     repo_username=param.username,
+                                     repo_password=param.password)
+            except Exception as e:
+                if i >= retries:
+                    logger.error("Failed to init git repo in %d times, url: %s, exception: %s.", retries, param.url, e)
+                    raise e
+                else:
+                    logger.warning("Failed to init git repo: %d/%d, url: %s, exception: %s, retrying...",
+                                   i + 1, retries, param.url, e)
+                    continue
+            return
+
     def _pre_commit(self, ident: str, dir_path: str) -> None:
         logger.debug("Do nothing in pre-commit step, id: %s, dir path: %s.", ident, dir_path)
+
+    @staticmethod
+    def _push_repo_with_retry(param: GitArchiveTaskParam, retries: int = 10) -> None:
+        for i in range(retries):
+            try:
+                GitWrapper.push(repo_path=param.dir_path)
+            except Exception as e:
+                if i >= retries:
+                    logger.error("Failed to push git repo in %d times, url: %s, exception: %s.",
+                                 retries, param.url, e)
+                    raise e
+                else:
+                    logger.warning("Failed to push git repo: %d/%d, url: %s, exception: %s, retrying...",
+                                   i + 1, retries, param.url, e)
+                    continue
+            return
 
     def _post_push(self, ident: str, dir_path: str) -> None:
         logger.debug("Do nothing in post-push step, id: %s, dir path: %s.", ident, dir_path)
@@ -149,10 +183,7 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
         """
         # Initialize Git repository
         self._pre_init_repo(param.ident, param.dir_path)
-        GitWrapper.init_repo(repo_path=param.dir_path,
-                             repo_url=param.url,
-                             repo_username=param.username,
-                             repo_password=param.password)
+        self._init_repo_with_retry(param)
 
         # Commit changes
         self._pre_commit(param.ident, param.dir_path)
@@ -165,7 +196,7 @@ class GitArchiver(JsonParser, ThreadPoolTaskExecutor):
                                             author_email=param.author_email)
         # push after commit
         if commit_num > 0 and param.url and param.username and param.password and param.push_after_commit:
-            GitWrapper.push(repo_path=param.dir_path)
+            self._push_repo_with_retry(param)
         self._post_push(param.ident, param.dir_path)
         return 0
 
