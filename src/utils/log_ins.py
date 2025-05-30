@@ -76,7 +76,7 @@ class LogUtil:
                 cls._logger = logging.getLogger("logger")
                 cls._logger.setLevel(logging.DEBUG)
                 cls._log_file_path = cls._create_log_file()
-                file_handler = logging.FileHandler(cls._log_file_path)
+                file_handler = logging.FileHandler(cls._log_file_path, encoding="utf-8")
                 formatter = logging.Formatter(cls.LOG_FMT)
                 file_handler.setFormatter(formatter)
                 cls._logger.addHandler(cls.create_console_log_handle())
