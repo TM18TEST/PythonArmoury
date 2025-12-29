@@ -66,7 +66,6 @@ class ThreadPoolTaskExecutor:
         try:
             exc = future.exception()
             if exc:
-                logger.exception("Captured exception from sub-thread: %s, task data: %s.", exc, task_data)
                 raise exc
         except Exception as exc:
             logger.exception("Error capturing exception from sub-thread: %s, task data: %s.", exc, task_data)

@@ -123,8 +123,8 @@ class FileSystemSmb(FileSystemAdapter):
                                i + 1, retries, src, e)
                 time.sleep(retry_interval_sec)
                 continue
-        logger.error("Failed to copy file in %d times, src path: %s, interval %.2f sec.",
-                     retries, src, retry_interval_sec)
+        logger.warning("Failed to copy file in %d times, src path: %s, interval %.2f sec.",
+                       retries, src, retry_interval_sec)
         raise FileNotFoundError(f"Failed to copy file from {src} to {dst}")
 
     @staticmethod
