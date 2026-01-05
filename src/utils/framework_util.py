@@ -4,7 +4,7 @@
 Description: Framework Utility Class Source Code.
 """
 import time
-from typing import Callable, Any, List, Type, Optional
+from typing import Callable, Any, List, Type, Optional, Iterable
 
 
 class FrameworkUtil:
@@ -12,8 +12,8 @@ class FrameworkUtil:
     def call_with_retry(
             func: Callable[..., Any],
             *args: Any,
-            retries: int = 3,
-            interval_sec: float = 0.1,
+            retries: int = 5,
+            interval_sec: float = 0.2,
             exc_list: Optional[List[Type[Exception]]] = None,
             **kwargs: Any):
         """
@@ -39,12 +39,36 @@ class FrameworkUtil:
         """
         if retries <= 0:
             raise RuntimeError(f"Invalid retries: {retries}")
-        for i in range(retries):
+        for attempt in range(retries):
             try:
                 return func(*args, **kwargs)
             except Exception as e:
                 if exc_list is not None and not isinstance(e, tuple(exc_list)):
                     raise
-                if i == retries - 1:
+                if attempt == retries - 1:
                     raise
                 time.sleep(interval_sec)
+
+    @staticmethod
+    def call_with_retry2(
+            func: Callable,
+            *args,
+            retries: int = 5,
+            interval_sec: float = 0.5,
+            retry_exceptions: Iterable[Type[Exception]] = (
+                    FileNotFoundError,
+                    PermissionError,
+                    OSError,
+            ),
+            **kwargs
+    ):
+        last_exc = None
+        for attempt in range(1, retries + 1):
+            try:
+                return func(*args, **kwargs)
+            except retry_exceptions as e:
+                last_exc = e
+                if attempt < retries:
+                    time.sleep(interval_sec)
+
+        raise last_exc

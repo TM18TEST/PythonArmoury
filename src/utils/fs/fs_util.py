@@ -13,6 +13,7 @@ from pathlib import Path
 import tempfile
 from typing import AnyStr
 
+from utils.framework_util import FrameworkUtil
 from utils.os_util import OsUtil
 from utils.pyinstaller_util import PyInstallerUtil
 
@@ -299,3 +300,26 @@ class FsUtil:
                 print(f"Warning: Failed to check {path}, retrying... ({e})")
                 time.sleep(delay)
         raise RuntimeError(f"Failed to check {path} in {retries} times, interval: {delay} sec")
+
+    @staticmethod
+    def rename_file(src: str, dst: str):
+        FrameworkUtil.call_with_retry(shutil.copy2, src, dst,
+                                      exc_list=[FileNotFoundError, PermissionError, OSError])
+        FrameworkUtil.call_with_retry(os.remove, src,
+                                      exc_list=[FileNotFoundError, PermissionError, OSError])
+
+    @staticmethod
+    def rmtree(path: str):
+        if not FrameworkUtil.call_with_retry(os.path.exists, path,
+                                             exc_list=[FileNotFoundError, PermissionError, OSError]):
+            return
+        FrameworkUtil.call_with_retry(shutil.rmtree, path,
+                                      exc_list=[FileNotFoundError, PermissionError, OSError])
+
+    @staticmethod
+    def copytree(src, dst):
+        if FrameworkUtil.call_with_retry(os.path.exists, dst,
+                                         exc_list=[FileNotFoundError, PermissionError, OSError]):
+            FsUtil.rmtree(dst)
+        FrameworkUtil.call_with_retry(shutil.copytree, src, dst,
+                                      exc_list=[FileNotFoundError, PermissionError, OSError])
